@@ -4,6 +4,7 @@ metadata:
   name: topwatcher
   namespace: default
 spec:
+  schedule: "* * * * *"
   concurrencyPolicy: Allow
   failedJobsHistoryLimit: 1
   jobTemplate:
@@ -14,7 +15,7 @@ spec:
         spec:
           containers:
           - image: hamidaria/topwatcher:v0.0.3
-            imagePullPolicy: Always
+            imagePullPolicy: IfNotPresent
             name: topwatcher
             resources: {}
             terminationMessagePath: /dev/termination-log
@@ -26,4 +27,3 @@ spec:
           schedulerName: default-scheduler
           securityContext: {}
           terminationGracePeriodSeconds: 30
-  schedule: "* * * * *"
