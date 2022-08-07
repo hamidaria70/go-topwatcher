@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/ashwanthkumar/slack-go-webhook"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -40,14 +41,32 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 }
 
 func CheckPodRamUsage(podInfo []map[string]string) {
+	alert := ""
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > 4 {
-			fmt.Printf("Pod %v from deployment %v has hich ram usage. current ram usage is %v\n",
+			alert = fmt.Sprintf("Pod %v from deployment %v has hich ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
+			fmt.Println(alert)
+			SendSlackPayload(alert)
 		} else {
 			os.Exit(1)
 		}
+	}
+}
+
+func SendSlackPayload(alert string) {
+
+	webhookUrl := "https://hooks.slack.com/services/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"
+	payload := slack.Payload{
+		Text:     alert,
+		Channel:  "#topwatcher",
+		Username: "TopWatcher",
+	}
+	errorSendSlack := make([]error, 0)
+	errorSendSlack = slack.Send(webhookUrl, "", payload)
+	if len(errorSendSlack) > 0 {
+		fmt.Printf("error: %s\n", errorSendSlack)
 	}
 }
 
