@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -11,10 +12,7 @@ import (
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
-func main() {
-	podDetailList := make([](map[string]string), 0)
-	podMetricsDetailList := make([](map[string]string), 0)
-
+func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -24,6 +22,40 @@ func main() {
 		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
+	return clientSet, config
+}
+
+func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) []map[string]string {
+	for i := range podDetailList {
+		podName1 := podDetailList[i]["name"]
+		for a := range podMetricsDetailList {
+			podName2 := podMetricsDetailList[a]["name"]
+
+			if podName1 == podName2 {
+				podDetailList[i]["ram"] = podMetricsDetailList[a]["ram"]
+			}
+		}
+	}
+	return podDetailList
+}
+
+func CheckPodRamUsage(podInfo []map[string]string) {
+	for element := range podInfo {
+		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
+		if ramValue > 4 {
+			fmt.Printf("Pod %v from deployment %v has hich ram usage. current ram usage is %v\n",
+				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
+		} else {
+			os.Exit(1)
+		}
+	}
+}
+
+func main() {
+	podDetailList := make([](map[string]string), 0)
+	podMetricsDetailList := make([](map[string]string), 0)
+
+	clientSet, config := GetClusterAccess()
 
 	pods, err := clientSet.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
 	if err != nil {
@@ -51,20 +83,10 @@ func main() {
 	for _, v := range podMetricsList.Items {
 		podMetricsDetail := map[string]string{
 			"name": v.GetName(),
-			"ram":  fmt.Sprintf("%vMi", v.Containers[0].Usage.Memory().Value()/(1024*1024)),
+			"ram":  fmt.Sprintf("%v", v.Containers[0].Usage.Memory().Value()/(1024*1024)),
 		}
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
-
-	for i := range podDetailList {
-		podName1 := podDetailList[i]["name"]
-		for a := range podMetricsDetailList {
-			podName2 := podMetricsDetailList[a]["name"]
-
-			if podName1 == podName2 {
-				podDetailList[i]["ram"] = podMetricsDetailList[a]["ram"]
-			}
-		}
-	}
-	fmt.Println(podDetailList)
+	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
+	CheckPodRamUsage(podInfo)
 }
