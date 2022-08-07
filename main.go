@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Get Kubernetes pods")
+	pod_detail_list := make([](map[string]string), 0)
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -20,18 +20,23 @@ func main() {
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("error getting Kubernetes clientset: %v\n", err)
+		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
 
 	pods, err := clientset.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
 	if err != nil {
-		fmt.Printf("error getting pods: %v\n", err)
+		fmt.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
 	}
 	for _, pod := range pods.Items {
-		fmt.Printf("Pod name: %s\n", pod.Name)
+		pod_detail := map[string]string{
+			"name":       pod.Name,
+			"deployment": pod.Labels["app"],
+		}
+		pod_detail_list = append(pod_detail_list, pod_detail)
 	}
+	fmt.Println(pod_detail_list)
 
 	metricsClientset, err := metricsv.NewForConfig(config)
 	if err != nil {
