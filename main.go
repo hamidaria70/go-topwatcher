@@ -12,31 +12,31 @@ import (
 )
 
 func main() {
-	pod_detail_list := make([](map[string]string), 0)
+	podDetailList := make([](map[string]string), 0)
+	podMetricsDetailList := make([](map[string]string), 0)
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
 	}
-	clientset, err := kubernetes.NewForConfig(config)
+	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
 
-	pods, err := clientset.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
+	pods, err := clientSet.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		fmt.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
 	}
 	for _, pod := range pods.Items {
-		pod_detail := map[string]string{
+		podDetail := map[string]string{
 			"name":       pod.Name,
 			"deployment": pod.Labels["app"],
 		}
-		pod_detail_list = append(pod_detail_list, pod_detail)
+		podDetailList = append(podDetailList, podDetail)
 	}
-	fmt.Println(pod_detail_list)
 
 	metricsClientset, err := metricsv.NewForConfig(config)
 	if err != nil {
@@ -49,6 +49,12 @@ func main() {
 	}
 
 	for _, v := range podMetricsList.Items {
-		fmt.Printf("Pod Name: %s , RAM Usage: %vMi\n", v.GetName(), v.Containers[0].Usage.Memory().Value()/(1024*1024))
+		podMetricsDetail := map[string]string{
+			"name": v.GetName(),
+			"ram":  fmt.Sprintf("%vMi", v.Containers[0].Usage.Memory().Value()/(1024*1024)),
+		}
+		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
+	fmt.Println(podDetailList)
+	fmt.Println(podMetricsDetailList)
 }
