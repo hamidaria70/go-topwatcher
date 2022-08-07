@@ -55,6 +55,16 @@ func main() {
 		}
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
+
+	for i := range podDetailList {
+		podName1 := podDetailList[i]["name"]
+		for a := range podMetricsDetailList {
+			podName2 := podMetricsDetailList[a]["name"]
+
+			if podName1 == podName2 {
+				podDetailList[i]["ram"] = podMetricsDetailList[a]["ram"]
+			}
+		}
+	}
 	fmt.Println(podDetailList)
-	fmt.Println(podMetricsDetailList)
 }
