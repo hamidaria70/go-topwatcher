@@ -3,12 +3,18 @@ module topwatcher
 go 1.18
 
 require (
+	github.com/ashwanthkumar/slack-go-webhook v0.0.0-20200209025033-430dd4e66960
 	k8s.io/apimachinery v0.24.3
 	k8s.io/client-go v0.24.3
 	k8s.io/metrics v0.24.3
 )
 
-require github.com/gorilla/websocket v1.4.2 // indirect
+require (
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/parnurzeal/gorequest v0.2.16 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	moul.io/http2curl v1.0.0 // indirect
+)
 
 require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
