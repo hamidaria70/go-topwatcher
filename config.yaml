@@ -1,0 +1,10 @@
+kubernetes:
+  inside-cluster: true
+  namespaces: default
+  threshold:
+    ram: 100
+slack:
+  notify: true
+  webhookurl: "https://hooks.slack.com/services/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"
+  channel: "topwatcher"
+  username: "topwatcher"
