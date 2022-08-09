@@ -19,8 +19,8 @@ type Configuration struct {
 		InsideCluster bool   `yaml:"inside-cluster"`
 		Namespaces    string `yaml:"namespaces"`
 		Threshold     struct {
-			Ram int `yaml:"ramThreshold"`
-		} `yaml:"ram"`
+			Ram int `yaml:"ram"`
+		} `yaml:"threshold"`
 	} `yaml:"kubernetes"`
 	Slack struct {
 		WebhookUrl string `yaml:"webhookurl"`
@@ -66,8 +66,6 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			fmt.Println(alert)
 			SendSlackPayload(configFile, alert)
-		} else {
-			os.Exit(1)
 		}
 	}
 }
@@ -109,7 +107,7 @@ func main() {
 	podDetailList := make([](map[string]string), 0)
 	podMetricsDetailList := make([](map[string]string), 0)
 	var configFile Configuration
-	
+
 	readFile(&configFile)
 	clientSet, config := GetClusterAccess()
 	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
