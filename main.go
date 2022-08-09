@@ -65,7 +65,9 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 			alert = fmt.Sprintf("Pod %v from deployment %v has hich ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			fmt.Println(alert)
-			SendSlackPayload(configFile, alert)
+			if configFile.Slack.Notify {
+				SendSlackPayload(configFile, alert)
+			}
 		}
 	}
 }
