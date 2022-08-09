@@ -63,8 +63,7 @@ func SendSlackPayload(alert string) {
 		Channel:  "#topwatcher",
 		Username: "TopWatcher",
 	}
-	errorSendSlack := make([]error, 0)
-	errorSendSlack = slack.Send(webhookUrl, "", payload)
+	errorSendSlack := slack.Send(webhookUrl, "", payload)
 	if len(errorSendSlack) > 0 {
 		fmt.Printf("error: %s\n", errorSendSlack)
 	}
