@@ -7,11 +7,28 @@ import (
 	"strconv"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
+
+type Configuration struct {
+	Kubernetes struct {
+		InsideCluster bool   `yaml:"inside-cluster"`
+		Namespaces    string `yaml:"namespaces"`
+		Threshold     struct {
+			Ram int `yaml:"ramThreshold"`
+		} `yaml:"ram"`
+	} `yaml:"kubernetes"`
+	Slack struct {
+		WebhookUrl string `yaml:"webhookurl"`
+		Notify     bool   `yaml:"notify"`
+		Channel    string `yaml:"channel"`
+		UserName   string `yaml:"username"`
+	} `yaml:"slack"`
+}
 
 func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	config, err := rest.InClusterConfig()
@@ -40,28 +57,28 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 	return podDetailList
 }
 
-func CheckPodRamUsage(podInfo []map[string]string) {
+func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 	alert := ""
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
-		if ramValue > 4 {
+		if ramValue > configFile.Kubernetes.Threshold.Ram {
 			alert = fmt.Sprintf("Pod %v from deployment %v has hich ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			fmt.Println(alert)
-			SendSlackPayload(alert)
+			SendSlackPayload(configFile, alert)
 		} else {
 			os.Exit(1)
 		}
 	}
 }
 
-func SendSlackPayload(alert string) {
+func SendSlackPayload(configFile Configuration, alert string) {
 
-	webhookUrl := "https://hooks.slack.com/services/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"
+	webhookUrl := configFile.Slack.WebhookUrl
 	payload := slack.Payload{
 		Text:     alert,
-		Channel:  "#topwatcher",
-		Username: "TopWatcher",
+		Channel:  "#" + configFile.Slack.Channel,
+		Username: configFile.Slack.UserName,
 	}
 	errorSendSlack := slack.Send(webhookUrl, "", payload)
 	if len(errorSendSlack) > 0 {
@@ -69,13 +86,33 @@ func SendSlackPayload(alert string) {
 	}
 }
 
+func processError(err error) {
+	fmt.Println(err)
+	os.Exit(2)
+}
+
+func readFile(configFile *Configuration) {
+	file, err := os.Open("config.yaml")
+	if err != nil {
+		processError(err)
+	}
+	defer file.Close()
+
+	decoder := yaml.NewDecoder(file)
+	err = decoder.Decode(configFile)
+	if err != nil {
+		processError(err)
+	}
+}
+
 func main() {
 	podDetailList := make([](map[string]string), 0)
 	podMetricsDetailList := make([](map[string]string), 0)
-
+	var configFile Configuration
+	
+	readFile(&configFile)
 	clientSet, config := GetClusterAccess()
-
-	pods, err := clientSet.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
+	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		fmt.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
@@ -93,7 +130,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses("default").List(context.TODO(), v1.ListOptions{})
+	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(configFile.Kubernetes.Namespaces).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -106,5 +143,5 @@ func main() {
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
 	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-	CheckPodRamUsage(podInfo)
+	CheckPodRamUsage(configFile, podInfo)
 }
