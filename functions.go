@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
@@ -42,11 +43,11 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 	alert := ""
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
-	deploymentListPurified := []string{}
+	deploymentListPurified := make([]string, 0)
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > configFile.Kubernetes.Threshold.Ram {
-			alert = fmt.Sprintf("Pod %v from deployment %v has hich ram usage. current ram usage is %v",
+			alert = fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			deploymentList = append(deploymentList, podInfo[element]["deployment"])
 			fmt.Println(alert)
@@ -61,7 +62,12 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 			deploymentListPurified = append(deploymentListPurified, item)
 		}
 	}
-	fmt.Println(deploymentListPurified)
+
+	for _, deploymentName := range deploymentListPurified {
+		fmt.Printf("Restarting deployment %v\n", deploymentName)
+		// TODO: Fixing this issue!
+		exec.Command("kubectl", "rollout", "restart", "deployment", deploymentName)
+	}
 }
 
 func SendSlackPayload(configFile Configuration, alert string) {
