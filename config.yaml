@@ -5,6 +5,6 @@ kubernetes:
     ram: 5
 slack:
   notify: false
-  webhookurl: "https://hooks.slack.com/services/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"
+  webhookurl: ""
   channel: "topwatcher"
   username: "topwatcher"
