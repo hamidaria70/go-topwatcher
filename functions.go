@@ -4,25 +4,34 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
-	config, err := rest.InClusterConfig()
+	fmt.Println("start get cluster access")
+	userHomeDir, err := os.UserHomeDir()
+	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
+	fmt.Println(kubeConfigPath)
+
+	fmt.Printf("Using kubeconfig: %s\n", kubeConfigPath)
+	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+
 	if err != nil {
 		panic(err.Error())
 	}
-	clientSet, err := kubernetes.NewForConfig(config)
+	clientSet, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
-	return clientSet, config
+	return clientSet, kubeConfig
 }
 
 func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) []map[string]string {
