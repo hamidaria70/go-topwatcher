@@ -3,24 +3,25 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
 	"gopkg.in/yaml.v2"
+	v1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
-	fmt.Println("start get cluster access")
 	userHomeDir, err := os.UserHomeDir()
-	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
-	fmt.Println(kubeConfigPath)
 
-	fmt.Printf("Using kubeconfig: %s\n", kubeConfigPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
+
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 
 	if err != nil {
@@ -74,8 +75,10 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 
 	for _, deploymentName := range deploymentListPurified {
 		fmt.Printf("Restarting deployment %v\n", deploymentName)
-		// TODO: Fixing this issue!
-		exec.Command("kubectl", "rollout", "restart", "deployment", deploymentName)
+		fmt.Println("************************************")
+		fmt.Println(v1.DeploymentList{})
+		fmt.Println("************************************")
+
 	}
 }
 
