@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -78,14 +79,11 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 	for _, deploymentName := range deploymentListPurified {
 		deploymentClient := clientSet.AppsV1().Deployments("default")
 		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
-		deployment, err := deploymentClient.Patch(ctx, deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
+		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
 
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		fmt.Println(deployment)
-
 	}
 }
 
