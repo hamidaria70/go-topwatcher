@@ -16,6 +16,9 @@ type Configuration struct {
 		Threshold     struct {
 			Ram int `yaml:"ram"`
 		} `yaml:"threshold"`
+		Exeptions struct {
+			Deployments []string `yaml:"deployments"`
+		} `yaml:"exeptions"`
 	} `yaml:"kubernetes"`
 	Slack struct {
 		WebhookUrl string `yaml:"webhookurl"`
@@ -31,6 +34,7 @@ func main() {
 	var configFile Configuration
 
 	readFile(&configFile)
+	fmt.Println(configFile.Kubernetes.Exeptions.Deployments. )
 	clientSet, config := GetClusterAccess()
 	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
 	if err != nil {
