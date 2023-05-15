@@ -63,5 +63,5 @@ func main() {
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
 	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-	CheckPodRamUsage(configFile, podInfo)
+	CheckPodRamUsage(configFile, podInfo, clientSet)
 }

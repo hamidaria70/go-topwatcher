@@ -5,10 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -49,7 +51,7 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 	return podDetailList
 }
 
-func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
+func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, clientSet *kubernetes.Clientset) {
 	alert := ""
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
@@ -74,10 +76,15 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) {
 	}
 
 	for _, deploymentName := range deploymentListPurified {
-		fmt.Printf("Restarting deployment %v\n", deploymentName)
-		fmt.Println("************************************")
-		fmt.Println(v1.DeploymentList{})
-		fmt.Println("************************************")
+		deploymentClient := clientSet.AppsV1().Deployments("default")
+		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
+		deployment, err := deploymentClient.Patch(ctx, deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(deployment)
 
 	}
 }
