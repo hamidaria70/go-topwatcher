@@ -34,7 +34,6 @@ func main() {
 	var configFile Configuration
 
 	readFile(&configFile)
-	fmt.Println(configFile.Kubernetes.Exeptions.Deployments. )
 	clientSet, config := GetClusterAccess()
 	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
 	if err != nil {
