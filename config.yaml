@@ -2,12 +2,9 @@ kubernetes:
   inside-cluster: true
   namespaces: default
   threshold:
-    ram: 5
+    ram: 50
   exeptoions:
-    deployments:
-      - dolphin-backend
-      - jaguar-backend
-      - panda-backend
+    deployments: [dolphin-backend, jaguar-backend , panda-backend]
 slack:
   notify: false
   webhookurl: ""
