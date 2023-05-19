@@ -1,9 +1,8 @@
 kubernetes:
-  inside-cluster: true
   namespaces: default
   threshold:
     ram: 50
-  exeptoions:
+  exeptions:
     deployments: [dolphin-backend, jaguar-backend , panda-backend]
 slack:
   notify: false

@@ -11,13 +11,12 @@ import (
 
 type Configuration struct {
 	Kubernetes struct {
-		InsideCluster bool   `yaml:"inside-cluster"`
-		Namespaces    string `yaml:"namespaces"`
-		Threshold     struct {
+		Namespaces string `yaml:"namespaces"`
+		Threshold  struct {
 			Ram int `yaml:"ram"`
 		} `yaml:"threshold"`
 		Exeptions struct {
-			Deployments []string `yaml:"deployments"`
+			Deployments []string `yaml:"deployments,flow"`
 		} `yaml:"exeptions"`
 	} `yaml:"kubernetes"`
 	Slack struct {

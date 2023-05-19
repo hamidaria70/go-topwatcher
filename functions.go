@@ -102,8 +102,10 @@ func SendSlackPayload(configFile Configuration, alert string) {
 }
 
 func processError(err error) {
-	fmt.Println(err)
-	os.Exit(2)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
 }
 
 func readFile(configFile *Configuration) {
