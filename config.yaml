@@ -1,9 +1,10 @@
 kubernetes:
   namespaces: default
   threshold:
-    ram: 50
+    ram: 5
   exeptions:
-    deployments: [dolphin-backend, jaguar-backend , panda-backend]
+    deployments:
+      - web
 slack:
   notify: false
   webhookurl: ""
