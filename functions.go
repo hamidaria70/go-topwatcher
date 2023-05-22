@@ -56,7 +56,9 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 	alert := ""
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
-	deploymentListPurified := make([]string, 0)
+	target := make([]string, 0)
+	keys := make(map[string]int)
+	list := make([]string, 0)
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > configFile.Kubernetes.Threshold.Ram {
@@ -72,11 +74,21 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 	for _, item := range deploymentList {
 		if _, value := allkeys[item]; !value {
 			allkeys[item] = true
-			deploymentListPurified = append(deploymentListPurified, item)
+			list = append(list, item)
+		}
+	}
+	exeptions := configFile.Kubernetes.Exeptions.Deployments
+	list = append(list, exeptions...)
+	for _, entry := range list {
+		keys[entry]++
+	}
+	for k, v := range keys {
+		if v == 1 {
+			target = append(target, k)
 		}
 	}
 
-	for _, deploymentName := range deploymentListPurified {
+	for _, deploymentName := range target {
 		deploymentClient := clientSet.AppsV1().Deployments("default")
 		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
 		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
