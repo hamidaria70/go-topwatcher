@@ -33,12 +33,15 @@ func main() {
 	var configFile Configuration
 
 	readFile(&configFile)
+
 	clientSet, config := GetClusterAccess()
 	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
+
 	if err != nil {
 		fmt.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
 	}
+
 	for _, pod := range pods.Items {
 		podDetail := map[string]string{
 			"name":       pod.Name,
@@ -64,6 +67,7 @@ func main() {
 		}
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
+
 	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
 	alerts, target := CheckPodRamUsage(configFile, podInfo)
 

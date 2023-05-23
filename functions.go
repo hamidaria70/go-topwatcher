@@ -24,17 +24,19 @@ func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 		panic(err.Error())
 	}
 	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
-
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 
 	if err != nil {
 		panic(err.Error())
 	}
+
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
+
 	if err != nil {
 		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
+
 	return clientSet, kubeConfig
 }
 
@@ -59,6 +61,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 	keys := make(map[string]int)
 	list := make([]string, 0)
 	alerts := make([]string, 0)
+
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > configFile.Kubernetes.Threshold.Ram {
@@ -74,8 +77,10 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 			list = append(list, item)
 		}
 	}
+
 	exeptions := configFile.Kubernetes.Exeptions.Deployments
 	list = append(list, exeptions...)
+
 	for _, entry := range list {
 		keys[entry]++
 	}
@@ -106,14 +111,13 @@ func SendSlackPayload(configFile Configuration, alerts []string) {
 }
 
 func processError(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
-	}
+	fmt.Println(err)
+	os.Exit(2)
 }
 
 func readFile(configFile *Configuration) {
 	file, err := os.Open("config.yaml")
+
 	if err != nil {
 		processError(err)
 	}
@@ -121,6 +125,7 @@ func readFile(configFile *Configuration) {
 
 	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(configFile)
+
 	if err != nil {
 		processError(err)
 	}
