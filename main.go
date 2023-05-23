@@ -11,7 +11,7 @@ import (
 
 type Configuration struct {
 	Kubernetes struct {
-		Namespaces string `yaml:"namespaces"`
+		Namespaces string `default:"default" yaml:"namespaces"`
 		Threshold  struct {
 			Ram int `yaml:"ram"`
 		} `yaml:"threshold"`
@@ -35,19 +35,23 @@ func main() {
 	readFile(&configFile)
 
 	clientSet, config := GetClusterAccess()
-	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
 
-	if err != nil {
-		fmt.Printf("Error Getting Pods: %v\n", err)
-		os.Exit(1)
-	}
-
-	for _, pod := range pods.Items {
-		podDetail := map[string]string{
-			"name":       pod.Name,
-			"deployment": pod.Labels["app"],
+	if len(configFile.Kubernetes.Namespaces) == 0 {
+		fmt.Println("something is wrong here!!!")
+	} else {
+		pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			fmt.Printf("Error Getting Pods: %v\n", err)
+			os.Exit(1)
 		}
-		podDetailList = append(podDetailList, podDetail)
+
+		for _, pod := range pods.Items {
+			podDetail := map[string]string{
+				"name":       pod.Name,
+				"deployment": pod.Labels["app"],
+			}
+			podDetailList = append(podDetailList, podDetail)
+		}
 	}
 
 	metricsClientset, err := metricsv.NewForConfig(config)
