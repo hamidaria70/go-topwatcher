@@ -52,8 +52,7 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 	return podDetailList
 }
 
-func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, clientSet *kubernetes.Clientset) []string {
-	alert := ""
+func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
 	target := make([]string, 0)
@@ -63,7 +62,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > configFile.Kubernetes.Threshold.Ram {
-			alert = fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
+			alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			deploymentList = append(deploymentList, podInfo[element]["deployment"])
 			alerts = append(alerts, alert)
@@ -86,17 +85,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 		}
 	}
 
-	for _, deploymentName := range target {
-		deploymentClient := clientSet.AppsV1().Deployments("default")
-		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
-		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
-
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-
-	return alerts
+	return alerts, target
 }
 
 func SendSlackPayload(configFile Configuration, alerts []string) {
@@ -134,5 +123,18 @@ func readFile(configFile *Configuration) {
 	err = decoder.Decode(configFile)
 	if err != nil {
 		processError(err)
+	}
+}
+
+func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
+
+	for _, deploymentName := range target {
+		deploymentClient := clientSet.AppsV1().Deployments("default")
+		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
+		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
