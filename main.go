@@ -65,5 +65,13 @@ func main() {
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
 	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-	CheckPodRamUsage(configFile, podInfo, clientSet)
+	alerts := CheckPodRamUsage(configFile, podInfo, clientSet)
+
+	if configFile.Slack.Notify {
+		SendSlackPayload(configFile, alerts)
+	} else {
+		for _, alert := range alerts {
+			fmt.Println(alert)
+		}
+	}
 }

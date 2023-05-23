@@ -52,23 +52,21 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 	return podDetailList
 }
 
-func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, clientSet *kubernetes.Clientset) {
+func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, clientSet *kubernetes.Clientset) []string {
 	alert := ""
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
 	target := make([]string, 0)
 	keys := make(map[string]int)
 	list := make([]string, 0)
+	alerts := make([]string, 0)
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
 		if ramValue > configFile.Kubernetes.Threshold.Ram {
 			alert = fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			deploymentList = append(deploymentList, podInfo[element]["deployment"])
-			fmt.Println(alert)
-			if configFile.Slack.Notify {
-				SendSlackPayload(configFile, alert)
-			}
+			alerts = append(alerts, alert)
 		}
 	}
 	for _, item := range deploymentList {
@@ -97,19 +95,24 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, cli
 			fmt.Println(err)
 		}
 	}
+
+	return alerts
 }
 
-func SendSlackPayload(configFile Configuration, alert string) {
+func SendSlackPayload(configFile Configuration, alerts []string) {
 
-	webhookUrl := configFile.Slack.WebhookUrl
-	payload := slack.Payload{
-		Text:     alert,
-		Channel:  "#" + configFile.Slack.Channel,
-		Username: configFile.Slack.UserName,
-	}
-	errorSendSlack := slack.Send(webhookUrl, "", payload)
-	if len(errorSendSlack) > 0 {
-		fmt.Printf("error: %s\n", errorSendSlack)
+	for _, alert := range alerts {
+		fmt.Println(alert)
+		webhookUrl := configFile.Slack.WebhookUrl
+		payload := slack.Payload{
+			Text:     alert,
+			Channel:  "#" + configFile.Slack.Channel,
+			Username: configFile.Slack.UserName,
+		}
+		errorSendSlack := slack.Send(webhookUrl, "", payload)
+		if len(errorSendSlack) > 0 {
+			fmt.Printf("error: %s\n", errorSendSlack)
+		}
 	}
 }
 
