@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
@@ -142,4 +143,44 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 			fmt.Println(err)
 		}
 	}
+}
+
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, config *rest.Config) ([]map[string]string, []map[string]string) {
+
+	podDetailList := make([](map[string]string), 0)
+	podMetricsDetailList := make([](map[string]string), 0)
+
+	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
+	if err != nil {
+		fmt.Printf("Error Getting Pods: %v\n", err)
+		os.Exit(1)
+	}
+
+	for _, pod := range pods.Items {
+		podDetail := map[string]string{
+			"name":       pod.Name,
+			"deployment": pod.Labels["app"],
+		}
+		podDetailList = append(podDetailList, podDetail)
+	}
+
+	metricsClientset, err := metricsv.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(configFile.Kubernetes.Namespaces).List(context.TODO(), v1.ListOptions{})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for _, v := range podMetricsList.Items {
+		podMetricsDetail := map[string]string{
+			"name": v.GetName(),
+			"ram":  fmt.Sprintf("%v", v.Containers[0].Usage.Memory().Value()/(1024*1024)),
+		}
+		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
+	}
+
+	return podDetailList, podMetricsDetailList
 }
