@@ -72,23 +72,28 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 			alerts = append(alerts, alert)
 		}
 	}
-	for _, item := range deploymentList {
-		if _, value := allkeys[item]; !value {
-			allkeys[item] = true
-			list = append(list, item)
-		}
-	}
 
-	exeptions := configFile.Kubernetes.Exeptions.Deployments
-	list = append(list, exeptions...)
-
-	for _, entry := range list {
-		keys[entry]++
-	}
-	for k, v := range keys {
-		if v == 1 {
-			target = append(target, k)
+	if len(deploymentList) > 0 {
+		for _, item := range deploymentList {
+			if _, value := allkeys[item]; !value {
+				allkeys[item] = true
+				list = append(list, item)
+			}
 		}
+
+		exeptions := configFile.Kubernetes.Exeptions.Deployments
+		list = append(list, exeptions...)
+
+		for _, entry := range list {
+			keys[entry]++
+		}
+		for k, v := range keys {
+			if v == 1 {
+				target = append(target, k)
+			}
+		}
+	} else {
+		fmt.Println("there is nothing to do!!!")
 	}
 
 	return alerts, target
