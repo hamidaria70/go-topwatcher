@@ -63,36 +63,32 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 	list := make([]string, 0)
 	alerts := make([]string, 0)
 
-	if configFile.Kubernetes.Threshold.Ram > 0 {
-		for element := range podInfo {
-			ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
-			if ramValue > configFile.Kubernetes.Threshold.Ram {
-				alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
-					podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
-				deploymentList = append(deploymentList, podInfo[element]["deployment"])
-				alerts = append(alerts, alert)
-			}
+	for element := range podInfo {
+		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
+		if ramValue > configFile.Kubernetes.Threshold.Ram {
+			alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
+				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
+			deploymentList = append(deploymentList, podInfo[element]["deployment"])
+			alerts = append(alerts, alert)
 		}
-		for _, item := range deploymentList {
-			if _, value := allkeys[item]; !value {
-				allkeys[item] = true
-				list = append(list, item)
-			}
+	}
+	for _, item := range deploymentList {
+		if _, value := allkeys[item]; !value {
+			allkeys[item] = true
+			list = append(list, item)
 		}
+	}
 
-		exeptions := configFile.Kubernetes.Exeptions.Deployments
-		list = append(list, exeptions...)
+	exeptions := configFile.Kubernetes.Exeptions.Deployments
+	list = append(list, exeptions...)
 
-		for _, entry := range list {
-			keys[entry]++
+	for _, entry := range list {
+		keys[entry]++
+	}
+	for k, v := range keys {
+		if v == 1 {
+			target = append(target, k)
 		}
-		for k, v := range keys {
-			if v == 1 {
-				target = append(target, k)
-			}
-		}
-	} else {
-		fmt.Println("ram value is not defined")
 	}
 
 	return alerts, target
@@ -185,6 +181,5 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 		}
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
-
 	return podDetailList, podMetricsDetailList
 }

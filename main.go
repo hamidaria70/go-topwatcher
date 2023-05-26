@@ -24,14 +24,20 @@ type Configuration struct {
 
 func main() {
 	var configFile Configuration
+	var alerts []string
+	var target []string
 
 	readFile(&configFile)
 
 	clientSet, config := GetClusterAccess()
-	podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
 
-	podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-	alerts, target := CheckPodRamUsage(configFile, podInfo)
+	if len(configFile.Kubernetes.Namespaces) > 0 {
+		podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
+		podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
+		alerts, target = CheckPodRamUsage(configFile, podInfo)
+	} else {
+		fmt.Println("namespace is not defined")
+	}
 
 	if len(target) > 0 {
 		RestartDeployment(clientSet, target)
