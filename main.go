@@ -43,7 +43,7 @@ func main() {
 		RestartDeployment(clientSet, target)
 	}
 
-	if configFile.Slack.Notify {
+	if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {
 		SendSlackPayload(configFile, alerts)
 	} else {
 		for _, alert := range alerts {
