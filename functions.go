@@ -82,7 +82,17 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 		}
 
 		exeptions := configFile.Kubernetes.Exeptions.Deployments
-		list = append(list, exeptions...)
+		var newExeptions []string
+
+		for _, item := range exeptions {
+			for _, element := range list {
+				if item == element {
+					newExeptions = append(newExeptions, item)
+				}
+			}
+		}
+
+		list = append(list, newExeptions...)
 
 		for _, entry := range list {
 			keys[entry]++
