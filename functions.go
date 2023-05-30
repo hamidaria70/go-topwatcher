@@ -198,3 +198,22 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 	}
 	return podDetailList, podMetricsDetailList
 }
+
+func Contain(nominated string, clientSet *kubernetes.Clientset) bool {
+	var namespaceList []string
+
+	namespace, err := clientSet.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
+	if err != nil {
+		processError(err)
+	}
+	for _, namespace := range namespace.Items {
+		namespaceList = append(namespaceList, namespace.Name)
+	}
+
+	for _, item := range namespaceList {
+		if item == nominated {
+			return true
+		}
+	}
+	return false
+}

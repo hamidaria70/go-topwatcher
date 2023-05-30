@@ -32,9 +32,13 @@ func main() {
 	clientSet, config := GetClusterAccess()
 
 	if len(configFile.Kubernetes.Namespaces) > 0 {
-		podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
-		podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-		alerts, target = CheckPodRamUsage(configFile, podInfo)
+		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
+			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
+			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
+			alerts, target = CheckPodRamUsage(configFile, podInfo)
+		} else {
+			fmt.Println("nominated namespace is not in the cluster!!")
+		}
 	} else {
 		fmt.Println("namespace is not defined")
 	}
