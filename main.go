@@ -35,7 +35,11 @@ func main() {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
 			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-			alerts, target = CheckPodRamUsage(configFile, podInfo)
+			if configFile.Kubernetes.Threshold.Ram > 0 {
+				alerts, target = CheckPodRamUsage(configFile, podInfo)
+			} else {
+				fmt.Println("Ram value is not defined in configuration file")
+			}
 		} else {
 			fmt.Println("nominated namespace is not in the cluster!!")
 		}
