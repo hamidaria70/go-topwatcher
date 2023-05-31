@@ -66,6 +66,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 		podDetail := map[string]string{
 			"name":       pod.Name,
 			"deployment": pod.Labels["app"],
+			"kind":       pod.OwnerReferences[0].Kind,
 		}
 		podDetailList = append(podDetailList, podDetail)
 	}
