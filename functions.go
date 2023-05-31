@@ -33,7 +33,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
-		if ramValue > configFile.Kubernetes.Threshold.Ram {
+		if ramValue > configFile.Kubernetes.Threshold.Ram && IsException(podInfo[element], configFile) {
 			alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			deploymentList = append(deploymentList, podInfo[element]["deployment"])
@@ -111,4 +111,14 @@ func readFile(configFile *Configuration) {
 	if err != nil {
 		processError(err)
 	}
+}
+
+func IsException(podInfo map[string]string, configFile Configuration) bool {
+
+	for _, name := range configFile.Kubernetes.Exeptions.Deployments {
+		if podInfo["deployment"] == name {
+			return false
+		}
+	}
+	return true
 }
