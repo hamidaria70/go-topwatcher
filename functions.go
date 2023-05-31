@@ -70,6 +70,9 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 				target = append(target, k)
 			}
 		}
+		if len(target) == 0 {
+			fmt.Println("targets were eliminated by exeptions!!!")
+		}
 	} else {
 		fmt.Println("there is nothing to do!!!")
 	}
