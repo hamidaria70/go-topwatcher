@@ -10,9 +10,9 @@ type Configuration struct {
 		Threshold  struct {
 			Ram int `yaml:"ram"`
 		} `yaml:"threshold"`
-		Exeptions struct {
+		Exceptions struct {
 			Deployments []string `yaml:"deployments,flow"`
-		} `yaml:"exeptions"`
+		} `yaml:"exceptions"`
 	} `yaml:"kubernetes"`
 	Slack struct {
 		WebhookUrl string `yaml:"webhookurl"`

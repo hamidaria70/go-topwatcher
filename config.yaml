@@ -2,7 +2,7 @@ kubernetes:
   namespaces: default
   threshold:
     ram: 5
-  exeptions:
+  exceptions:
     deployments:
       - web
 slack:

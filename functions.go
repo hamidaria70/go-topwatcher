@@ -49,18 +49,18 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 			}
 		}
 
-		exeptions := configFile.Kubernetes.Exeptions.Deployments
-		var newExeptions []string
+		exceptions := configFile.Kubernetes.Exceptions.Deployments
+		var newExceptions []string
 
-		for _, item := range exeptions {
+		for _, item := range exceptions {
 			for _, element := range list {
 				if item == element {
-					newExeptions = append(newExeptions, item)
+					newExceptions = append(newExceptions, item)
 				}
 			}
 		}
 
-		list = append(list, newExeptions...)
+		list = append(list, newExceptions...)
 
 		for _, entry := range list {
 			keys[entry]++
@@ -71,7 +71,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 			}
 		}
 		if len(target) == 0 {
-			fmt.Println("targets were eliminated by exeptions!!!")
+			fmt.Println("targets were eliminated by exceptions!!!")
 		}
 	} else {
 		fmt.Println("there is nothing to do!!!")
@@ -115,7 +115,7 @@ func readFile(configFile *Configuration) {
 
 func IsException(podInfo map[string]string, configFile Configuration) bool {
 
-	for _, name := range configFile.Kubernetes.Exeptions.Deployments {
+	for _, name := range configFile.Kubernetes.Exceptions.Deployments {
 		if podInfo["deployment"] == name {
 			return false
 		}
