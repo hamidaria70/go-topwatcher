@@ -70,11 +70,8 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 				target = append(target, k)
 			}
 		}
-		if len(target) == 0 {
-			fmt.Println("targets were eliminated by exceptions!!!")
-		}
 	} else {
-		fmt.Println("there is nothing to do!!!")
+		InfoLogger.Println("There is nothing to do!!!")
 	}
 
 	return alerts, target
@@ -83,7 +80,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 func SendSlackPayload(configFile Configuration, alerts []string) {
 
 	for _, alert := range alerts {
-		fmt.Println(alert)
+		InfoLogger.Println(alert)
 		webhookUrl := configFile.Slack.WebhookUrl
 		payload := slack.Payload{
 			Text:     alert,
@@ -92,7 +89,7 @@ func SendSlackPayload(configFile Configuration, alerts []string) {
 		}
 		errorSendSlack := slack.Send(webhookUrl, "", payload)
 		if len(errorSendSlack) > 0 {
-			fmt.Printf("error: %s\n", errorSendSlack)
+			ErrorLogger.Printf("error: %s\n", errorSendSlack)
 		}
 	}
 }
@@ -117,6 +114,7 @@ func IsException(podInfo map[string]string, configFile Configuration) bool {
 
 	for _, name := range configFile.Kubernetes.Exceptions.Deployments {
 		if podInfo["deployment"] == name {
+			WarningLogger.Printf("'%v' were eliminated by exceptions!!!\n", podInfo["deployment"])
 			return false
 		}
 	}

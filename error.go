@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 )
 
 func processError(err error) {
-	fmt.Println(err)
+	ErrorLogger.Println(err)
 	os.Exit(2)
 }

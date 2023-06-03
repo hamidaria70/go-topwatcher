@@ -31,7 +31,7 @@ func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
 
 	if err != nil {
-		fmt.Printf("Error Getting Kubernetes clientset: %v\n", err)
+		ErrorLogger.Printf("Error Getting Kubernetes clientset: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -46,7 +46,7 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
 
 		if err != nil {
-			fmt.Println(err)
+			ErrorLogger.Println(err)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 
 	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
 	if err != nil {
-		fmt.Printf("Error Getting Pods: %v\n", err)
+		ErrorLogger.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
 	}
 

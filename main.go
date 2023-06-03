@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 type Configuration struct {
 	Kubernetes struct {
 		Namespaces string `yaml:"namespaces"`
@@ -27,6 +23,8 @@ func main() {
 	var alerts []string
 	var target []string
 
+	InfoLogger.Println("Starting topwatcher...")
+
 	readFile(&configFile)
 
 	clientSet, config := GetClusterAccess()
@@ -38,13 +36,13 @@ func main() {
 			if configFile.Kubernetes.Threshold.Ram > 0 {
 				alerts, target = CheckPodRamUsage(configFile, podInfo)
 			} else {
-				fmt.Println("Ram value is not defined in configuration file")
+				ErrorLogger.Println("Ram value is not defined in configuration file")
 			}
 		} else {
-			fmt.Println("nominated namespace is not in the cluster!!")
+			WarningLogger.Printf("'%v' namespace is not in the cluster!!", configFile.Kubernetes.Namespaces)
 		}
 	} else {
-		fmt.Println("namespace is not defined")
+		ErrorLogger.Println("Namespace is not defined")
 	}
 
 	if len(target) > 0 {
@@ -55,7 +53,7 @@ func main() {
 		SendSlackPayload(configFile, alerts)
 	} else {
 		for _, alert := range alerts {
-			fmt.Println(alert)
+			InfoLogger.Println(alert)
 		}
 	}
 }
