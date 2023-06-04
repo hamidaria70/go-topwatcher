@@ -23,12 +23,18 @@ func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	}
 	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	if configFile.Logging.Debug {
+		DebugLogger.Println("Building kubeconfig file from the path")
+	}
 
 	if err != nil {
 		panic(err.Error())
 	}
 
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
+	if configFile.Logging.Debug {
+		DebugLogger.Println("Getting new clientset")
+	}
 
 	if err != nil {
 		ErrorLogger.Printf("Error Getting Kubernetes clientset: %v\n", err)
@@ -44,6 +50,10 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 		deploymentClient := clientSet.AppsV1().Deployments("default")
 		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
 		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
+
+		if configFile.Logging.Debug {
+			DebugLogger.Printf("%v deployment was restarted by patching\n", deploymentName)
+		}
 
 		if err != nil {
 			ErrorLogger.Println(err)
@@ -104,6 +114,9 @@ func Contain(nominated string, clientSet *kubernetes.Clientset) bool {
 
 	for _, item := range namespaceList {
 		if item == nominated {
+			if configFile.Logging.Debug {
+				DebugLogger.Printf("%v namespace exists inside the cluster\n", nominated)
+			}
 			return true
 		}
 	}

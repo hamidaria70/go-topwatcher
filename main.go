@@ -49,13 +49,16 @@ func init() {
 	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
 	DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
+
+	InfoLogger.Println("Starting topwatcher...")
+	if configFile.Logging.Debug {
+		DebugLogger.Println("Reading Configuration file...")
+	}
 }
 
 func main() {
 	var alerts []string
 	var target []string
-
-	InfoLogger.Println("Starting topwatcher...")
 
 	clientSet, config := GetClusterAccess()
 
@@ -63,6 +66,9 @@ func main() {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
 			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
+			if configFile.Logging.Debug{
+				DebugLogger.Printf("Pods information list is: %v",podInfo)
+			}
 			if configFile.Kubernetes.Threshold.Ram > 0 {
 				alerts, target = CheckPodRamUsage(configFile, podInfo)
 			} else {
