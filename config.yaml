@@ -4,9 +4,12 @@ kubernetes:
     ram: 5
   exceptions:
     deployments:
-      - web
+      - web3
 slack:
   notify: false
   webhookurl: ""
   channel: "topwatcher"
   username: "topwatcher"
+
+logging:
+  debug: false

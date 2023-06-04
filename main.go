@@ -1,5 +1,10 @@
 package main
 
+import (
+	"log"
+	"os"
+)
+
 type Configuration struct {
 	Kubernetes struct {
 		Namespaces string `yaml:"namespaces"`
@@ -16,16 +21,41 @@ type Configuration struct {
 		Channel    string `yaml:"channel"`
 		UserName   string `yaml:"username"`
 	} `yaml:"slack"`
+	Logging struct {
+		Debug bool `yaml:"debug"`
+	} `yaml:"logging"`
+}
+
+var (
+	WarningLogger *log.Logger
+	InfoLogger    *log.Logger
+	ErrorLogger   *log.Logger
+	DebugLogger   *log.Logger
+)
+var configFile Configuration
+
+func init() {
+	var flags int
+
+	readFile(&configFile)
+	if configFile.Logging.Debug {
+		flags = log.Ldate | log.Ltime | log.Lshortfile
+	} else {
+
+		flags = log.Ldate | log.Ltime
+	}
+
+	InfoLogger = log.New(os.Stdout, "INFO ", flags)
+	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
+	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
+	DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 }
 
 func main() {
-	var configFile Configuration
 	var alerts []string
 	var target []string
 
 	InfoLogger.Println("Starting topwatcher...")
-
-	readFile(&configFile)
 
 	clientSet, config := GetClusterAccess()
 
