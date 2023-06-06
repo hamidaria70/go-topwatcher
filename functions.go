@@ -26,14 +26,12 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
-	target := make([]string, 0)
-	keys := make(map[string]int)
 	list := make([]string, 0)
 	alerts := make([]string, 0)
 
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
-		if ramValue > configFile.Kubernetes.Threshold.Ram && IsException(podInfo[element], configFile) {
+		if ramValue > configFile.Kubernetes.Threshold.Ram && IsException(podInfo[element], exceptions) {
 			alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
 			deploymentList = append(deploymentList, podInfo[element]["deployment"])
@@ -49,32 +47,11 @@ func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]
 			}
 		}
 
-		exceptions := configFile.Kubernetes.Exceptions.Deployments
-		var newExceptions []string
-
-		for _, item := range exceptions {
-			for _, element := range list {
-				if item == element {
-					newExceptions = append(newExceptions, item)
-				}
-			}
-		}
-
-		list = append(list, newExceptions...)
-
-		for _, entry := range list {
-			keys[entry]++
-		}
-		for k, v := range keys {
-			if v == 1 {
-				target = append(target, k)
-			}
-		}
 	} else {
 		InfoLogger.Println("There is nothing to do!!!")
 	}
 
-	return alerts, target
+	return alerts, list
 }
 
 func SendSlackPayload(configFile Configuration, alerts []string) {
@@ -110,9 +87,8 @@ func readFile(configFile *Configuration) {
 	}
 }
 
-func IsException(podInfo map[string]string, configFile Configuration) bool {
-
-	for _, name := range configFile.Kubernetes.Exceptions.Deployments {
+func IsException(podInfo map[string]string, exceptoion []string) bool {
+	for _, name := range exceptions {
 		if podInfo["deployment"] == name {
 			WarningLogger.Printf("'%v' were eliminated by exceptions!!!\n", podInfo["deployment"])
 			return false

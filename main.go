@@ -33,6 +33,7 @@ var (
 	DebugLogger   *log.Logger
 )
 var configFile Configuration
+var exceptions []string
 
 func init() {
 	var flags int
@@ -40,6 +41,7 @@ func init() {
 	readFile(&configFile)
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
+		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 	} else {
 
 		flags = log.Ldate | log.Ltime
@@ -48,11 +50,19 @@ func init() {
 	InfoLogger = log.New(os.Stdout, "INFO ", flags)
 	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
-	DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 
 	InfoLogger.Println("Starting topwatcher...")
 	if configFile.Logging.Debug {
 		DebugLogger.Println("Reading Configuration file...")
+	}
+
+	allkeys := make(map[string]bool)
+
+	for _, item := range configFile.Kubernetes.Exceptions.Deployments {
+		if _, value := allkeys[item]; !value {
+			allkeys[item] = true
+			exceptions = append(exceptions, item)
+		}
 	}
 }
 
@@ -66,8 +76,8 @@ func main() {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
 			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-			if configFile.Logging.Debug{
-				DebugLogger.Printf("Pods information list is: %v",podInfo)
+			if configFile.Logging.Debug {
+				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
 			if configFile.Kubernetes.Threshold.Ram > 0 {
 				alerts, target = CheckPodRamUsage(configFile, podInfo)
