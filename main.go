@@ -79,6 +79,7 @@ func main() {
 	var target []string
 	var info Info
 	info.Pods = make([]map[string]string, 0)
+	var result []Info
 
 	clientSet, config := GetClusterAccess()
 
@@ -86,30 +87,26 @@ func main() {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
 			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-			/*deploymentClient, _ := clientSet.AppsV1().Deployments("default").List(context.Background(), v1.ListOptions{})
-			for _, a := range deploymentClient.Items {
-				fmt.Println(a.Name, a.Status.Replicas)
-			}*/
-
 			keys := make(map[string]int)
 			for _, entry := range podDetailList {
 				keys[entry["deployment"]]++
 			}
-			count := 0
 			for j, n := range podDetailList {
 				if n["name"] == podMetricsDetailList[j]["name"] {
-					if count <= keys[n["deployment"]] {
-						info.Pods = append(info.Pods, podMetricsDetailList[j])
-						info.Deployment = n["deployment"]
-						info.Kind = n["kind"]
-						count++
+					if info.Deployment != n["deployment"] && info.Deployment != "" {
+						info.Pods = nil
 					}
+					info.Deployment = n["deployment"]
+					info.Kind = n["kind"]
+					info.Pods = append(info.Pods, podMetricsDetailList[j])
+
 				}
-				info.Pods = nil
+				result = append(result, info)
 			}
 
-			fmt.Println(info)
-
+			for _, v := range result {
+				fmt.Println(v)
+			}
 			if configFile.Logging.Debug {
 				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
