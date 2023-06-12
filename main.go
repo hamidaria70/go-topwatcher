@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 )
@@ -77,41 +76,18 @@ func init() {
 func main() {
 	var alerts []string
 	var target []string
-	var info Info
-	info.Pods = make([]map[string]string, 0)
-	var result []Info
 
 	clientSet, config := GetClusterAccess()
 
 	if len(configFile.Kubernetes.Namespaces) > 0 {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
-			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
-			keys := make(map[string]int)
-			for _, entry := range podDetailList {
-				keys[entry["deployment"]]++
-			}
-			for j, n := range podDetailList {
-				if n["name"] == podMetricsDetailList[j]["name"] {
-					if info.Deployment != n["deployment"] && info.Deployment != "" {
-						info.Pods = nil
-					}
-					info.Deployment = n["deployment"]
-					info.Kind = n["kind"]
-					info.Pods = append(info.Pods, podMetricsDetailList[j])
-
-				}
-				result = append(result, info)
-			}
-
-			for _, v := range result {
-				fmt.Println(v)
-			}
+			podInfo, result := MergePodMetricMaps(podDetailList, podMetricsDetailList)
 			if configFile.Logging.Debug {
 				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
 			if configFile.Kubernetes.Threshold.Ram > 0 {
-				alerts, target = CheckPodRamUsage(configFile, podInfo)
+				alerts, target = CheckPodRamUsage(configFile, podInfo, result)
 			} else {
 				ErrorLogger.Println("Ram value is not defined in configuration file")
 			}

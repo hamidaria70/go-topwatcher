@@ -9,7 +9,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) []map[string]string {
+func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) ([]map[string]string, []Info) {
+	var info Info
+	info.Pods = make([]map[string]string, 0)
+	var result []Info
+
 	for i := range podDetailList {
 		podName1 := podDetailList[i]["name"]
 		for a := range podMetricsDetailList {
@@ -20,14 +24,56 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 			}
 		}
 	}
-	return podDetailList
+	keys := make(map[string]int)
+	for _, entry := range podDetailList {
+		keys[entry["deployment"]]++
+	}
+	for j, n := range podDetailList {
+		if n["name"] == podMetricsDetailList[j]["name"] {
+			if info.Deployment != n["deployment"] && info.Deployment != "" {
+				info.Pods = nil
+			}
+			info.Deployment = n["deployment"]
+			info.Kind = n["kind"]
+			info.Pods = append(info.Pods, podMetricsDetailList[j])
+
+		}
+		if len(info.Pods) == keys[info.Deployment] {
+			info.Replicas = keys[info.Deployment]
+			result = append(result, info)
+
+		}
+	}
+	return podDetailList, result
 }
 
-func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string) ([]string, []string) {
+func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, result []Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
+	deploymentListNew := make([]string, 0)
 	allkeys := make(map[string]bool)
 	list := make([]string, 0)
 	alerts := make([]string, 0)
+	alertsNew := make([]string, 0)
+
+	for each := range result {
+		fmt.Println(result[each].Pods)
+		for c := range result[each].Pods {
+			ramValueNew, _ := strconv.Atoi(result[each].Pods[c]["ram"])
+			if ramValueNew > configFile.Kubernetes.Threshold.Ram && IsException(result[each].Deployment, exceptions) {
+				alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
+					result[each].Pods[c]["name"], result[each].Deployment, result[each].Pods[c]["ram"])
+				deploymentListNew = append(deploymentListNew, result[each].Deployment)
+				alertsNew = append(alertsNew, alert)
+			}
+
+		}
+	}
+
+	fmt.Println(deploymentListNew)
+
+	for _, n := range alertsNew {
+		fmt.Println(n)
+	}
 
 	for element := range podInfo {
 		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
