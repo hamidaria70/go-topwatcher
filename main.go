@@ -14,6 +14,7 @@ type Configuration struct {
 		Exceptions struct {
 			Deployments []string `yaml:"deployments,flow"`
 		} `yaml:"exceptions"`
+		PodRestart bool `yaml:"podrestart"`
 	} `yaml:"kubernetes"`
 	Slack struct {
 		WebhookUrl string `yaml:"webhookurl"`
@@ -97,7 +98,7 @@ func main() {
 		ErrorLogger.Println("Namespace is not defined")
 	}
 
-	if len(target) > 0 {
+	if len(target) > 0 && configFile.Kubernetes.PodRestart {
 		RestartDeployment(clientSet, target)
 	}
 
