@@ -9,10 +9,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) ([]map[string]string, []Info) {
+func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) []Info {
 	var info Info
 	info.Pods = make([]map[string]string, 0)
-	var result []Info
+	var podInfo []Info
 
 	for i := range podDetailList {
 		podName1 := podDetailList[i]["name"]
@@ -40,48 +40,29 @@ func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList 
 		}
 		if len(info.Pods) == keys[info.Deployment] {
 			info.Replicas = keys[info.Deployment]
-			result = append(result, info)
+			podInfo = append(podInfo, info)
 
 		}
 	}
-	return podDetailList, result
+	return podInfo
 }
 
-func CheckPodRamUsage(configFile Configuration, podInfo []map[string]string, result []Info) ([]string, []string) {
+func CheckPodRamUsage(configFile Configuration, podInfo []Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
-	deploymentListNew := make([]string, 0)
 	allkeys := make(map[string]bool)
 	list := make([]string, 0)
 	alerts := make([]string, 0)
-	alertsNew := make([]string, 0)
 
-	for each := range result {
-		fmt.Println(result[each].Pods)
-		for c := range result[each].Pods {
-			ramValueNew, _ := strconv.Atoi(result[each].Pods[c]["ram"])
-			if ramValueNew > configFile.Kubernetes.Threshold.Ram && IsException(result[each].Deployment, exceptions) {
+	for each := range podInfo {
+		for c := range podInfo[each].Pods {
+			ramValueNew, _ := strconv.Atoi(podInfo[each].Pods[c]["ram"])
+			if ramValueNew > configFile.Kubernetes.Threshold.Ram && IsExceptionNew(podInfo[each].Deployment, podInfo[each].Pods[c]["name"], exceptions) {
 				alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
-					result[each].Pods[c]["name"], result[each].Deployment, result[each].Pods[c]["ram"])
-				deploymentListNew = append(deploymentListNew, result[each].Deployment)
-				alertsNew = append(alertsNew, alert)
+					podInfo[each].Pods[c]["name"], podInfo[each].Deployment, podInfo[each].Pods[c]["ram"])
+				deploymentList = append(deploymentList, podInfo[each].Deployment)
+				alerts = append(alerts, alert)
 			}
 
-		}
-	}
-
-	fmt.Println(deploymentListNew)
-
-	for _, n := range alertsNew {
-		fmt.Println(n)
-	}
-
-	for element := range podInfo {
-		ramValue, _ := strconv.Atoi(podInfo[element]["ram"])
-		if ramValue > configFile.Kubernetes.Threshold.Ram && IsException(podInfo[element], exceptions) {
-			alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
-				podInfo[element]["name"], podInfo[element]["deployment"], podInfo[element]["ram"])
-			deploymentList = append(deploymentList, podInfo[element]["deployment"])
-			alerts = append(alerts, alert)
 		}
 	}
 
@@ -133,10 +114,11 @@ func readFile(configFile *Configuration) {
 	}
 }
 
-func IsException(podInfo map[string]string, exceptoion []string) bool {
-	for _, name := range exceptions {
-		if podInfo["deployment"] == name {
-			WarningLogger.Printf("'%v' were eliminated by exceptions!!!\n", podInfo["deployment"])
+func IsExceptionNew(deployment string, podName string, exception []string) bool {
+
+	for _, name := range exception {
+		if deployment == name {
+			WarningLogger.Printf("'%v' was eliminated by exceptions!!!\n", podName)
 			return false
 		}
 	}

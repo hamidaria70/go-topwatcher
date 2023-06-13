@@ -82,12 +82,12 @@ func main() {
 	if len(configFile.Kubernetes.Namespaces) > 0 {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
 			podDetailList, podMetricsDetailList := GetPodInfo(clientSet, configFile, config)
-			podInfo, result := MergePodMetricMaps(podDetailList, podMetricsDetailList)
+			podInfo := MergePodMetricMaps(podDetailList, podMetricsDetailList)
 			if configFile.Logging.Debug {
 				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
 			if configFile.Kubernetes.Threshold.Ram > 0 {
-				alerts, target = CheckPodRamUsage(configFile, podInfo, result)
+				alerts, target = CheckPodRamUsage(configFile,podInfo)
 			} else {
 				ErrorLogger.Println("Ram value is not defined in configuration file")
 			}
