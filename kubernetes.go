@@ -61,7 +61,10 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 	}
 }
 
-func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, config *rest.Config) ([]map[string]string, []map[string]string) {
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, config *rest.Config) []Info {
+	var info Info
+	info.Pods = make([]map[string]string, 0)
+	var podInfo []Info
 
 	podDetailList := make([](map[string]string), 0)
 	podMetricsDetailList := make([](map[string]string), 0)
@@ -98,7 +101,28 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 		}
 		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 	}
-	return podDetailList, podMetricsDetailList
+
+	keys := make(map[string]int)
+	for _, entry := range podDetailList {
+		keys[entry["deployment"]]++
+	}
+	for j, n := range podDetailList {
+		if n["name"] == podMetricsDetailList[j]["name"] {
+			if info.Deployment != n["deployment"] && info.Deployment != "" {
+				info.Pods = nil
+			}
+			info.Deployment = n["deployment"]
+			info.Kind = n["kind"]
+			info.Pods = append(info.Pods, podMetricsDetailList[j])
+
+		}
+		if len(info.Pods) == keys[info.Deployment] {
+			info.Replicas = keys[info.Deployment]
+			podInfo = append(podInfo, info)
+
+		}
+	}
+	return podInfo
 }
 
 func Contain(nominated string, clientSet *kubernetes.Clientset) bool {

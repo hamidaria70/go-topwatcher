@@ -9,44 +9,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func MergePodMetricMaps(podDetailList []map[string]string, podMetricsDetailList []map[string]string) []Info {
-	var info Info
-	info.Pods = make([]map[string]string, 0)
-	var podInfo []Info
-
-	for i := range podDetailList {
-		podName1 := podDetailList[i]["name"]
-		for a := range podMetricsDetailList {
-			podName2 := podMetricsDetailList[a]["name"]
-
-			if podName1 == podName2 {
-				podDetailList[i]["ram"] = podMetricsDetailList[a]["ram"]
-			}
-		}
-	}
-	keys := make(map[string]int)
-	for _, entry := range podDetailList {
-		keys[entry["deployment"]]++
-	}
-	for j, n := range podDetailList {
-		if n["name"] == podMetricsDetailList[j]["name"] {
-			if info.Deployment != n["deployment"] && info.Deployment != "" {
-				info.Pods = nil
-			}
-			info.Deployment = n["deployment"]
-			info.Kind = n["kind"]
-			info.Pods = append(info.Pods, podMetricsDetailList[j])
-
-		}
-		if len(info.Pods) == keys[info.Deployment] {
-			info.Replicas = keys[info.Deployment]
-			podInfo = append(podInfo, info)
-
-		}
-	}
-	return podInfo
-}
-
 func CheckPodRamUsage(configFile Configuration, podInfo []Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
