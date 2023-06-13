@@ -1,5 +1,6 @@
 kubernetes:
   namespaces: default
+  podrestart: false
   threshold:
     ram: 5
   exceptions:
