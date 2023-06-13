@@ -39,9 +39,9 @@ var (
 	InfoLogger    *log.Logger
 	ErrorLogger   *log.Logger
 	DebugLogger   *log.Logger
+	configFile    Configuration
+	exceptions    []string
 )
-var configFile Configuration
-var exceptions []string
 
 func init() {
 	var flags int
