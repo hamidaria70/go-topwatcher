@@ -93,13 +93,18 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 	if err != nil {
 		panic(err.Error())
 	}
-
-	for _, v := range podMetricsList.Items {
-		podMetricsDetail := map[string]string{
-			"name": v.GetName(),
-			"ram":  fmt.Sprintf("%v", v.Containers[0].Usage.Memory().Value()/(1024*1024)),
+	if len(podMetricsList.Items) == len(pods.Items) {
+		fmt.Println("it is ok")
+		for v := range podMetricsList.Items {
+			podMetricsDetail := map[string]string{
+				"name": podMetricsList.Items[v].GetName(),
+				"ram":  fmt.Sprintf("%v", podMetricsList.Items[v].Containers[0].Usage.Memory().Value()/(1024*1024)),
+			}
+			podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 		}
-		podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
+	} else {
+		ErrorLogger.Println("Metrics are not available for some pods")
+		os.Exit(1)
 	}
 
 	keys := make(map[string]int)
