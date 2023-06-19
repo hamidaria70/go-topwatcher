@@ -15,19 +15,33 @@ import (
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
-func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
-	userHomeDir, err := os.UserHomeDir()
-	if configFile.Logging.Debug {
-		DebugLogger.Println("User home directory is: ", userHomeDir)
-	}
+func GetClusterAccess(configFile Configuration) (*kubernetes.Clientset, *rest.Config) {
+	var kubeConfigPath string
 
-	if err != nil {
-		ErrorLogger.Println(err)
-		os.Exit(1)
-	}
-	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
-	if configFile.Logging.Debug {
-		DebugLogger.Println("Kubeconfig path is: ", kubeConfigPath)
+	if configFile.Kubernetes.Kubeconfig != "" {
+		if configFile.Logging.Debug {
+			DebugLogger.Println("Building kubeconfig file from configuration file")
+		}
+		kubeConfigPath = configFile.Kubernetes.Kubeconfig
+	} else {
+		if configFile.Logging.Debug {
+			DebugLogger.Println("Reading kubeconfig from user home directory")
+		}
+
+		userHomeDir, err := os.UserHomeDir()
+		if configFile.Logging.Debug {
+			DebugLogger.Println("User home directory is: ", userHomeDir)
+		}
+
+		if err != nil {
+			ErrorLogger.Println(err)
+			os.Exit(1)
+		}
+		kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
+		if configFile.Logging.Debug {
+			DebugLogger.Println("Kubeconfig path is: ", kubeConfigPath)
+		}
+
 	}
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if configFile.Logging.Debug {

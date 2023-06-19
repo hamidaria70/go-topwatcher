@@ -7,6 +7,7 @@ import (
 
 type Configuration struct {
 	Kubernetes struct {
+		Kubeconfig string `yaml:"kubeconfig"`
 		Namespaces string `yaml:"namespaces"`
 		Threshold  struct {
 			Ram int `yaml:"ram"`
@@ -78,7 +79,7 @@ func main() {
 	var alerts []string
 	var target []string
 
-	clientSet, config := GetClusterAccess()
+	clientSet, config := GetClusterAccess(configFile)
 
 	if len(configFile.Kubernetes.Namespaces) > 0 {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
