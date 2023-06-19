@@ -98,7 +98,6 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 		os.Exit(1)
 	}
 	if len(podMetricsList.Items) == len(pods.Items) {
-		fmt.Println("it is ok")
 		for v := range podMetricsList.Items {
 			podMetricsDetail := map[string]string{
 				"name": podMetricsList.Items[v].GetName(),
