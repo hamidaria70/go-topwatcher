@@ -1,4 +1,5 @@
 kubernetes:
+  kubeconfig: /home/hamid/.kube/config
   namespaces: default
   podrestart: false
   threshold:
