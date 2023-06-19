@@ -19,7 +19,8 @@ func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	userHomeDir, err := os.UserHomeDir()
 
 	if err != nil {
-		panic(err.Error())
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 	kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
@@ -28,7 +29,8 @@ func GetClusterAccess() (*kubernetes.Clientset, *rest.Config) {
 	}
 
 	if err != nil {
-		panic(err.Error())
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
@@ -86,12 +88,14 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 
 	metricsClientset, err := metricsv.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 
 	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(configFile.Kubernetes.Namespaces).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
-		panic(err.Error())
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 	if len(podMetricsList.Items) == len(pods.Items) {
 		fmt.Println("it is ok")
@@ -135,7 +139,8 @@ func Contain(nominated string, clientSet *kubernetes.Clientset) bool {
 
 	namespace, err := clientSet.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
 	if err != nil {
-		processError(err)
+		ErrorLogger.Println(err)
+		os.Exit(2)
 	}
 	for _, namespace := range namespace.Items {
 		namespaceList = append(namespaceList, namespace.Name)

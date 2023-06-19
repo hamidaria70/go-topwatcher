@@ -90,12 +90,14 @@ func main() {
 				alerts, target = CheckPodRamUsage(configFile, podInfo)
 			} else {
 				ErrorLogger.Println("Ram value is not defined in configuration file")
+				os.Exit(1)
 			}
 		} else {
 			WarningLogger.Printf("'%v' namespace is not in the cluster!!", configFile.Kubernetes.Namespaces)
 		}
 	} else {
 		ErrorLogger.Println("Namespace is not defined")
+		os.Exit(1)
 	}
 
 	if len(target) > 0 && configFile.Kubernetes.PodRestart {

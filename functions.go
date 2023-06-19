@@ -64,7 +64,8 @@ func readFile(configFile *Configuration) {
 	file, err := os.Open("config.yaml")
 
 	if err != nil {
-		processError(err)
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -72,7 +73,8 @@ func readFile(configFile *Configuration) {
 	err = decoder.Decode(configFile)
 
 	if err != nil {
-		processError(err)
+		ErrorLogger.Println(err)
+		os.Exit(1)
 	}
 }
 
