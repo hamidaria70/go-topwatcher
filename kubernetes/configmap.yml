@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  config.yml: |-
+    kubernetes:
+      kubeconfig: /home/hamid/.kube/config
+      namespaces: default
+      podrestart: false
+      threshold:
+        ram: 5
+      exceptions:
+        deployments:
+          - web3
+    slack:
+      notify: false
+      webhookurl: ""
+      channel: "topwatcher"
+      username: "topwatcher"
+    
+    logging:
+      debug: false
+kind: ConfigMap
+metadata:
+  labels:
+    group: backend
+  name: topwatcher-configmap
+  namespace: default

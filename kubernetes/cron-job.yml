@@ -1,29 +1,42 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: topwatcher
   namespace: default
 spec:
-  schedule: "* * * * *"
   concurrencyPolicy: Allow
   failedJobsHistoryLimit: 1
   jobTemplate:
-    metadata:
-      creationTimestamp: null
     spec:
       template:
         spec:
           containers:
-          - image: hamidaria/topwatcher:v0.0.3
+          - args:
+            - /usr/local/bin/topwatcher
+            - -c
+            - /path/to/config.yml
+            image: topwatcher:latest
             imagePullPolicy: IfNotPresent
             name: topwatcher
-            resources: {}
-            terminationMessagePath: /dev/termination-log
-            terminationMessagePolicy: File
-          dnsPolicy: ClusterFirst
-          imagePullSecrets:
-          - name: regcred
-          restartPolicy: OnFailure
-          schedulerName: default-scheduler
-          securityContext: {}
-          terminationGracePeriodSeconds: 30
+            volumeMounts:
+            - mountPath: /path/to/config.yml
+              name: topwatcher-config
+              subPath: config.yml
+            - mountPath: /path/to/kube-config
+              name: cluster-config
+              subPath: config
+          volumes:
+          - configMap:
+              defaultMode: 420
+              items:
+              - key: topwatcher.yml
+                path: topwatcher.yml
+              name: topwatcher-configmap
+            name: topwatcher-config
+          - name: cluster-config
+            secret:
+              defaultMode: 420
+              secretName: cluster-config
+  schedule: '*/10 * * * *'
+  successfulJobsHistoryLimit: 1
+  suspend: false
