@@ -62,7 +62,7 @@ func SendSlackPayload(configFile Configuration, alerts []string) {
 	}
 }
 
-func readFile(configFile *Configuration, path *string) {
+func readFile(configFile *Configuration) {
 	var file *os.File
 	var err error
 

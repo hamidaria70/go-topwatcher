@@ -48,10 +48,10 @@ var (
 func init() {
 	var flags int
 
-	path := flag.String("config", "config.yml", "path to config file")
+	//	path := flag.String("config", "config.yml", "path to config file")
 	flag.Parse()
 
-	readFile(&configFile, path)
+	readFile(&configFile)
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
 		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
