@@ -13,26 +13,26 @@ spec:
           containers:
           - args:
             - /usr/local/bin/topwatcher
-            - -c
-            - /path/to/config.yml
+            - /app/config.yaml
             image: topwatcher:latest
             imagePullPolicy: IfNotPresent
             name: topwatcher
             volumeMounts:
-            - mountPath: /path/to/config.yml
-              name: topwatcher-config
-              subPath: config.yml
-            - mountPath: /path/to/kube-config
+            - mountPath: /app/config.yaml
+              name: topwatcher-configmap
+              subPath: config.yaml
+            - mountPath: /app/kubeconfig
               name: cluster-config
               subPath: config
+          restartPolicy: OnFailure
           volumes:
           - configMap:
               defaultMode: 420
               items:
-              - key: topwatcher.yml
-                path: topwatcher.yml
+              - key: config.yaml
+                path: config.yaml
               name: topwatcher-configmap
-            name: topwatcher-config
+            name: topwatcher-configmap
           - name: cluster-config
             secret:
               defaultMode: 420
