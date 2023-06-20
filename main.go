@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 )
@@ -47,20 +48,22 @@ var (
 func init() {
 	var flags int
 
-	readFile(&configFile)
+	path := flag.String("config", "config.yml", "path to config file")
+	flag.Parse()
+
+	readFile(&configFile, path)
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
 		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 	} else {
-
 		flags = log.Ldate | log.Ltime
 	}
-
 	InfoLogger = log.New(os.Stdout, "INFO ", flags)
 	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
 
 	InfoLogger.Println("Starting topwatcher...")
+
 	if configFile.Logging.Debug {
 		DebugLogger.Println("Reading Configuration file...")
 	}

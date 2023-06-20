@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -60,13 +62,24 @@ func SendSlackPayload(configFile Configuration, alerts []string) {
 	}
 }
 
-func readFile(configFile *Configuration) {
-	file, err := os.Open("config.yaml")
+func readFile(configFile *Configuration, path *string) {
+	var file *os.File
+	var err error
 
-	if err != nil {
-		ErrorLogger.Println(err)
-		os.Exit(1)
+	if path := flag.Arg(0); path != "" {
+		file, err = os.Open(path)
+		if err != nil {
+			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println(err)
+			os.Exit(1)
+		}
+	} else {
+		file, err = os.Open("config.yaml")
+		if err != nil {
+			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println("make sure that config.yaml is here")
+			os.Exit(1)
+		}
 	}
+
 	defer file.Close()
 
 	decoder := yaml.NewDecoder(file)
