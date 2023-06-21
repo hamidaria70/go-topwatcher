@@ -5,6 +5,7 @@ metadata:
   namespace: default
 spec:
   concurrencyPolicy: Allow
+  startingDeadlineSeconds: 60
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
