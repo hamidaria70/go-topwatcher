@@ -20,7 +20,9 @@ func CheckPodRamUsage(configFile Configuration, podInfo []Info) ([]string, []str
 	for each := range podInfo {
 		for c := range podInfo[each].Pods {
 			ramValueNew, _ := strconv.Atoi(podInfo[each].Pods[c]["ram"])
-			if ramValueNew > configFile.Kubernetes.Threshold.Ram && IsException(podInfo[each].Deployment, podInfo[each].Pods[c]["name"], exceptions) {
+			if ramValueNew > configFile.Kubernetes.Threshold.Ram &&
+				IsException(podInfo[each].Deployment, podInfo[each].Pods[c]["name"], exceptions) &&
+				podInfo[each].Kind == "ReplicaSet" {
 				alert := fmt.Sprintf("Pod %v from deployment %v has high ram usage. current ram usage is %v",
 					podInfo[each].Pods[c]["name"], podInfo[each].Deployment, podInfo[each].Pods[c]["ram"])
 				deploymentList = append(deploymentList, podInfo[each].Deployment)
