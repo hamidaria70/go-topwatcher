@@ -98,12 +98,15 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 	}
 
 	for _, pod := range pods.Items {
-		podDetail := map[string]string{
-			"name":       pod.Name,
-			"deployment": pod.Labels["app"],
-			"kind":       pod.OwnerReferences[0].Kind,
+		if pod.OwnerReferences[0].Kind != "Job" && pod.Status.Phase == "Running" {
+			podDetail := map[string]string{
+				"name":       pod.Name,
+				"deployment": pod.Labels["app"],
+				"kind":       pod.OwnerReferences[0].Kind,
+			}
+			podDetailList = append(podDetailList, podDetail)
+
 		}
-		podDetailList = append(podDetailList, podDetail)
 	}
 
 	metricsClientset, err := metricsv.NewForConfig(config)
@@ -117,7 +120,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 		ErrorLogger.Println(err)
 		os.Exit(1)
 	}
-	if len(podMetricsList.Items) == len(pods.Items) {
+	if len(podMetricsList.Items) == len(podDetailList) {
 		for v := range podMetricsList.Items {
 			podMetricsDetail := map[string]string{
 				"name": podMetricsList.Items[v].GetName(),
