@@ -129,6 +129,9 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, confi
 			podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 		}
 	} else {
+		if configFile.Logging.Debug {
+			DebugLogger.Printf("length of podMetricsList: %v length of podDetailList: %v\n", podMetricsList.Items, podDetailList)
+		}
 		ErrorLogger.Println("Metrics are not available for some pods")
 		os.Exit(1)
 	}
