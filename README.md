@@ -96,3 +96,4 @@ kubectl create secret generic cluster-config --from-file=./config
 ```bash
 kubectl create -f kubernetes/cron-job.yml
 ```
+
