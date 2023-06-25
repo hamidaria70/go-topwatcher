@@ -1,0 +1,31 @@
+name: Docker CI
+
+on:
+  pull_request:
+    branches: 
+      - main
+  push:
+    branches: 
+      - main
+    tags: 
+      - v*
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker Login
+      run: |
+        echo ${{ vars.PACKAGES_TOKEN }} | docker login $REGISTRY -u ${{ vars.PACKAGES_USER }} --password-stdin
+
+    - name: Build the Docker image
+      env:
+        IMAGE_NAME: ${{ github.repository }}
+      run: |
+        IMAGE_TAG=$(echo $GITHUB_REF_NAME | sed 's+/+-+g')
+        docker build . -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+        docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
