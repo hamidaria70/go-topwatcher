@@ -2,9 +2,9 @@ name: Docker CI
 
 on:
   push:
-    branches: 
+    branches:
       - master
-    tags: 
+    tags:
       - v*
 
 env:
