@@ -19,5 +19,6 @@ jobs:
     - name: Test
       run: |
         go test -c -o test
+        exit 1
         ./test
 
