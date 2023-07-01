@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - master
+      - feature/tests
     tags:
       - v*
 
@@ -25,10 +25,7 @@ jobs:
       run: |
         go test -c -o test
         ./test
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
+    
     - name: Docker Login
       run: |
         echo ${{ vars.PACKAGES_TOKEN }} | docker login $REGISTRY -u ${{ vars.PACKAGES_USER }} --password-stdin
