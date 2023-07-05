@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"topwatcher/pkg/reader"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,7 +16,7 @@ import (
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
-func GetClusterAccess(configFile Configuration) (*kubernetes.Clientset, *rest.Config) {
+func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, *rest.Config) {
 	var kubeConfigPath string
 
 	if configFile.Kubernetes.Kubeconfig != "" {
@@ -83,7 +84,7 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 	}
 }
 
-func GetPodInfo(clientSet *kubernetes.Clientset, configFile Configuration, config *rest.Config) []Info {
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config) []Info {
 	var info Info
 	info.Pods = make([]map[string]string, 0)
 	var podInfo []Info

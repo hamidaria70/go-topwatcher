@@ -4,30 +4,9 @@ import (
 	"flag"
 	"log"
 	"os"
-)
 
-type Configuration struct {
-	Kubernetes struct {
-		Kubeconfig string `yaml:"kubeconfig"`
-		Namespaces string `yaml:"namespaces"`
-		Threshold  struct {
-			Ram int `yaml:"ram"`
-		} `yaml:"threshold"`
-		Exceptions struct {
-			Deployments []string `yaml:"deployments,flow"`
-		} `yaml:"exceptions"`
-		PodRestart bool `yaml:"podrestart"`
-	} `yaml:"kubernetes"`
-	Slack struct {
-		WebhookUrl string `yaml:"webhookurl"`
-		Notify     bool   `yaml:"notify"`
-		Channel    string `yaml:"channel"`
-		UserName   string `yaml:"username"`
-	} `yaml:"slack"`
-	Logging struct {
-		Debug bool `yaml:"debug"`
-	} `yaml:"logging"`
-}
+	"topwatcher/pkg/reader"
+)
 
 type Info struct {
 	Deployment string
@@ -41,8 +20,8 @@ var (
 	InfoLogger    *log.Logger
 	ErrorLogger   *log.Logger
 	DebugLogger   *log.Logger
-	configFile    Configuration
 	exceptions    []string
+	configFile    *reader.Configuration
 )
 
 func init() {
@@ -51,7 +30,7 @@ func init() {
 	//	path := flag.String("config", "config.yml", "path to config file")
 	flag.Parse()
 
-	readFile(&configFile)
+	reader.ReadFile()
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
 		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)

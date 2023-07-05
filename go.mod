@@ -1,4 +1,4 @@
-module go-topwatcher
+module topwatcher
 
 go 1.19
 
