@@ -2,19 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
+	k8s "topwatcher/pkg/kubernetes"
 	"topwatcher/pkg/reader"
 )
-
-type Info struct {
-	Deployment string
-	Kind       string
-	Replicas   int
-	Pods       []map[string]string
-}
 
 var (
 	WarningLogger *log.Logger
@@ -28,7 +21,6 @@ var (
 func init() {
 	var flags int
 
-	//	path := flag.String("config", "config.yml", "path to config file")
 	flag.Parse()
 
 	configFile = reader.ReadFile()
@@ -59,16 +51,14 @@ func init() {
 }
 
 func main() {
-
-	fmt.Println(configFile.Kubernetes.Namespaces)
 	var alerts []string
 	var target []string
 
-	clientSet, config := GetClusterAccess(&configFile)
+	clientSet, config := k8s.GetClusterAccess(&configFile)
 
 	if len(configFile.Kubernetes.Namespaces) > 0 {
-		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
-			podInfo := GetPodInfo(clientSet, &configFile, config)
+		if k8s.Contain(configFile.Kubernetes.Namespaces, clientSet) {
+			podInfo := k8s.GetPodInfo(clientSet, &configFile, config)
 			if configFile.Logging.Debug {
 				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
@@ -87,7 +77,7 @@ func main() {
 	}
 
 	if len(target) > 0 && configFile.Kubernetes.PodRestart {
-		RestartDeployment(clientSet, target)
+		k8s.RestartDeployment(clientSet, target)
 	}
 
 	if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {

@@ -1,8 +1,9 @@
-package main
+package kubernetes
 
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,6 +15,21 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
+)
+
+type Info struct {
+	Deployment string
+	Kind       string
+	Replicas   int
+	Pods       []map[string]string
+}
+
+var (
+	WarningLogger *log.Logger
+	InfoLogger    *log.Logger
+	ErrorLogger   *log.Logger
+	DebugLogger   *log.Logger
+	configFile    reader.Configuration
 )
 
 func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, *rest.Config) {

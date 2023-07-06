@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"strconv"
-
+	k8s "topwatcher/pkg/kubernetes"
 	"topwatcher/pkg/reader"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
 )
 
-func CheckPodRamUsage(configFile *reader.Configuration, podInfo []Info) ([]string, []string) {
+func CheckPodRamUsage(configFile *reader.Configuration, podInfo []k8s.Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
 	list := make([]string, 0)
@@ -44,7 +44,6 @@ func CheckPodRamUsage(configFile *reader.Configuration, podInfo []Info) ([]strin
 
 	return alerts, list
 }
-
 func SendSlackPayload(configFile *reader.Configuration, alerts []string) {
 
 	for _, alert := range alerts {
