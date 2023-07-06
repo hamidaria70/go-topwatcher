@@ -35,7 +35,7 @@ var (
 	configFile Configuration
 )
 
-func ReadFile() {
+func ReadFile() Configuration {
 	var file *os.File
 	var err error
 
@@ -62,4 +62,6 @@ func ReadFile() {
 		log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println(err)
 		os.Exit(1)
 	}
+
+	return configFile
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -21,7 +22,7 @@ var (
 	ErrorLogger   *log.Logger
 	DebugLogger   *log.Logger
 	exceptions    []string
-	configFile    *reader.Configuration
+	configFile    reader.Configuration
 )
 
 func init() {
@@ -30,7 +31,7 @@ func init() {
 	//	path := flag.String("config", "config.yml", "path to config file")
 	flag.Parse()
 
-	reader.ReadFile()
+	configFile = reader.ReadFile()
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
 		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
@@ -58,19 +59,21 @@ func init() {
 }
 
 func main() {
+
+	fmt.Println(configFile.Kubernetes.Namespaces)
 	var alerts []string
 	var target []string
 
-	clientSet, config := GetClusterAccess(configFile)
+	clientSet, config := GetClusterAccess(&configFile)
 
 	if len(configFile.Kubernetes.Namespaces) > 0 {
 		if Contain(configFile.Kubernetes.Namespaces, clientSet) {
-			podInfo := GetPodInfo(clientSet, configFile, config)
+			podInfo := GetPodInfo(clientSet, &configFile, config)
 			if configFile.Logging.Debug {
 				DebugLogger.Printf("Pods information list is: %v", podInfo)
 			}
 			if configFile.Kubernetes.Threshold.Ram > 0 {
-				alerts, target = CheckPodRamUsage(configFile, podInfo)
+				alerts, target = CheckPodRamUsage(&configFile, podInfo)
 			} else {
 				ErrorLogger.Println("Ram value is not defined in configuration file")
 				os.Exit(1)
@@ -88,7 +91,7 @@ func main() {
 	}
 
 	if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {
-		SendSlackPayload(configFile, alerts)
+		SendSlackPayload(&configFile, alerts)
 	} else {
 		for _, alert := range alerts {
 			InfoLogger.Println(alert)
