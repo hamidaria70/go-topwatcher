@@ -32,6 +32,20 @@ var (
 	configFile    reader.Configuration
 )
 
+func init() {
+	var flags int
+
+	if configFile.Logging.Debug {
+		flags = log.Ldate | log.Ltime | log.Lshortfile
+		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
+	} else {
+		flags = log.Ldate | log.Ltime
+	}
+	InfoLogger = log.New(os.Stdout, "INFO ", flags)
+	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
+	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
+}
+
 func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, *rest.Config) {
 	var kubeConfigPath string
 
