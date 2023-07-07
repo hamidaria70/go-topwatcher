@@ -2,10 +2,11 @@ package main
 
 import (
 	"testing"
+	"topwatcher/cmd"
 )
 
 func TestIsException(t *testing.T) {
-	got := IsException("deployment1", "pod1", []string{"deployment1", "deployment2", "deployment3"})
+	got := cmd.IsException("deployment1", "pod1", []string{"deployment1", "deployment2", "deployment3"})
 	want := false
 
 	if got != want {
