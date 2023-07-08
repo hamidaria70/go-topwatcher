@@ -34,6 +34,16 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+		debugMode, _ := cmd.Flags().GetBool("debug")
+
+		if debugMode {
+			flags := log.Ldate | log.Ltime | log.Lshortfile
+
+			InfoLogger = log.New(os.Stdout, "INFO ", flags)
+			WarningLogger = log.New(os.Stdout, "WARNING ", flags)
+			ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
+			DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
+		}
 
 		var alerts []string
 		var target []string
@@ -44,7 +54,7 @@ to quickly create a Cobra application.`,
 		if len(configFile.Kubernetes.Namespaces) > 0 {
 			if k8s.Contain(configFile.Kubernetes.Namespaces, clientSet) {
 				podInfo := k8s.GetPodInfo(clientSet, &configFile, config)
-				if configFile.Logging.Debug {
+				if debugMode {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
 				if configFile.Kubernetes.Threshold.Ram > 0 {
@@ -85,24 +95,16 @@ func Execute() {
 }
 
 func init() {
-	var flags int
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolP("debug", "d", false, "Turn on debug mode")
 
-	//flag.Parse()
+	flags := log.Ldate | log.Ltime
 
 	configFile = reader.ReadFile()
-	if configFile.Logging.Debug {
-		flags = log.Ldate | log.Ltime | log.Lshortfile
-		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
-	} else {
-		flags = log.Ldate | log.Ltime
-	}
+
 	InfoLogger = log.New(os.Stdout, "INFO ", flags)
 	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
-
-	if configFile.Logging.Debug {
-		DebugLogger.Println("Reading Configuration file...")
-	}
 
 	allkeys := make(map[string]bool)
 
@@ -120,5 +122,4 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
