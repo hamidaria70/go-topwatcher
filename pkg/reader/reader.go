@@ -1,7 +1,6 @@
 package reader
 
 import (
-	"flag"
 	"log"
 	"os"
 
@@ -35,22 +34,14 @@ var (
 	configFile Configuration
 )
 
-func ReadFile() Configuration {
+func ReadFile(configPath string) Configuration {
 	var file *os.File
 	var err error
 
-	if path := flag.Arg(0); path != "" {
-		file, err = os.Open(path)
-		if err != nil {
-			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println(err)
-			os.Exit(1)
-		}
-	} else {
-		file, err = os.Open("config.yaml")
-		if err != nil {
-			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println("make sure that config.yaml is here")
-			os.Exit(1)
-		}
+	file, err = os.Open(configPath)
+	if err != nil {
+		log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println(err)
+		os.Exit(1)
 	}
 
 	defer file.Close()

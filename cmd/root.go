@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	k8s "topwatcher/pkg/kubernetes"
@@ -19,6 +20,7 @@ var (
 	DebugLogger   *log.Logger
 	exceptions    []string
 	configFile    reader.Configuration
+	configPath    string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -35,6 +37,20 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		debugMode, _ := cmd.Flags().GetBool("debug")
+		configPath, _ = cmd.Flags().GetString("config")
+
+		configFile = reader.ReadFile(configPath)
+
+		allkeys := make(map[string]bool)
+
+		for _, item := range configFile.Kubernetes.Exceptions.Deployments {
+			if _, value := allkeys[item]; !value {
+				allkeys[item] = true
+				exceptions = append(exceptions, item)
+			}
+		}
+
+		fmt.Println(configPath)
 
 		if debugMode {
 			flags := log.Ldate | log.Ltime | log.Lshortfile
@@ -95,25 +111,15 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Flags().BoolP("debug", "d", false, "Turn on debug mode")
+	rootCmd.Flags().StringP("config", "c", "./config.yaml", "Config file address")
 
 	flags := log.Ldate | log.Ltime
-
-	configFile = reader.ReadFile()
 
 	InfoLogger = log.New(os.Stdout, "INFO ", flags)
 	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
 
-	allkeys := make(map[string]bool)
-
-	for _, item := range configFile.Kubernetes.Exceptions.Deployments {
-		if _, value := allkeys[item]; !value {
-			allkeys[item] = true
-			exceptions = append(exceptions, item)
-		}
-	}
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
