@@ -34,6 +34,7 @@ var (
 
 func init() {
 	var flags int
+	configFile = reader.ReadFile()
 
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
