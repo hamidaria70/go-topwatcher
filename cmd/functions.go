@@ -62,7 +62,6 @@ func SendSlackPayload(configFile *reader.Configuration, alerts []string) {
 }
 
 func IsException(deployment string, podName string, exception []string) bool {
-	fmt.Println(exception)
 
 	for _, name := range exception {
 		if deployment == name {
