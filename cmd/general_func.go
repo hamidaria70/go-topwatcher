@@ -3,13 +3,12 @@ package cmd
 import (
 	"fmt"
 	"strconv"
-	k8s "topwatcher/pkg/kubernetes"
 	"topwatcher/pkg/reader"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
 )
 
-func CheckPodRamUsage(configFile *reader.Configuration, podInfo []k8s.Info) ([]string, []string) {
+func CheckPodRamUsage(configFile *reader.Configuration, podInfo []Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
 	list := make([]string, 0)
