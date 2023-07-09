@@ -23,21 +23,21 @@ type Info struct {
 	Pods       []map[string]string
 }
 
-func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, *rest.Config) {
+func GetClusterAccess(configFile *reader.Configuration, debugMode bool) (*kubernetes.Clientset, *rest.Config) {
 	var kubeConfigPath string
 
 	if configFile.Kubernetes.Kubeconfig != "" {
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Building kubeconfig file from configuration file")
 		}
 		kubeConfigPath = configFile.Kubernetes.Kubeconfig
 	} else {
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Reading kubeconfig from user home directory")
 		}
 
 		userHomeDir, err := os.UserHomeDir()
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Println("User home directory is: ", userHomeDir)
 		}
 
@@ -46,13 +46,13 @@ func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, 
 			os.Exit(1)
 		}
 		kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Kubeconfig path is: ", kubeConfigPath)
 		}
 
 	}
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-	if configFile.Logging.Debug {
+	if debugMode || configFile.Logging.Debug {
 		DebugLogger.Println("Building kubeconfig file from the path")
 	}
 
@@ -62,7 +62,7 @@ func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, 
 	}
 
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
-	if configFile.Logging.Debug {
+	if debugMode || configFile.Logging.Debug {
 		DebugLogger.Println("Getting new clientset")
 	}
 
@@ -74,14 +74,14 @@ func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, 
 	return clientSet, kubeConfig
 }
 
-func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
+func RestartDeployment(clientSet *kubernetes.Clientset, target []string, debugMode bool) {
 
 	for _, deploymentName := range target {
 		deploymentClient := clientSet.AppsV1().Deployments("default")
 		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
 		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
 
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Printf("%v deployment was restarted by patching\n", deploymentName)
 		}
 
@@ -91,7 +91,7 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string) {
 	}
 }
 
-func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config) []Info {
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config, debugMode bool) []Info {
 	var info Info
 	info.Pods = make([]map[string]string, 0)
 	var podInfo []Info
@@ -137,7 +137,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 			podMetricsDetailList = append(podMetricsDetailList, podMetricsDetail)
 		}
 	} else {
-		if configFile.Logging.Debug {
+		if debugMode || configFile.Logging.Debug {
 			DebugLogger.Printf("length of podMetricsList: %v length of podDetailList: %v\n", podMetricsList.Items, podDetailList)
 		}
 		ErrorLogger.Println("Metrics are not available for some pods")
@@ -167,7 +167,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 	return podInfo
 }
 
-func Contain(nominated string, clientSet *kubernetes.Clientset) bool {
+func Contain(nominated string, clientSet *kubernetes.Clientset, debugMode bool) bool {
 	var namespaceList []string
 
 	namespace, err := clientSet.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
@@ -181,7 +181,7 @@ func Contain(nominated string, clientSet *kubernetes.Clientset) bool {
 
 	for _, item := range namespaceList {
 		if item == nominated {
-			if configFile.Logging.Debug {
+			if debugMode || configFile.Logging.Debug {
 				DebugLogger.Printf("%v namespace exists inside the cluster\n", nominated)
 			}
 			return true

@@ -6,7 +6,6 @@ package cmd
 import (
 	"log"
 	"os"
-	k8s "topwatcher/pkg/kubernetes"
 	"topwatcher/pkg/reader"
 
 	"github.com/spf13/cobra"
@@ -49,7 +48,7 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		if debugMode {
+		if debugMode || configFile.Logging.Debug {
 			flags = log.Ldate | log.Ltime | log.Lshortfile
 			DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 		} else {
@@ -61,11 +60,11 @@ to quickly create a Cobra application.`,
 
 		InfoLogger.Println("Starting topwatcher...")
 
-		clientSet, config := k8s.GetClusterAccess(&configFile)
+		clientSet, config := GetClusterAccess(&configFile, debugMode)
 
 		if len(configFile.Kubernetes.Namespaces) > 0 {
-			if k8s.Contain(configFile.Kubernetes.Namespaces, clientSet) {
-				podInfo := k8s.GetPodInfo(clientSet, &configFile, config)
+			if Contain(configFile.Kubernetes.Namespaces, clientSet, debugMode) {
+				podInfo := GetPodInfo(clientSet, &configFile, config, debugMode)
 				if debugMode || configFile.Logging.Debug {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
@@ -84,7 +83,7 @@ to quickly create a Cobra application.`,
 		}
 
 		if len(target) > 0 && configFile.Kubernetes.PodRestart {
-			k8s.RestartDeployment(clientSet, target)
+			RestartDeployment(clientSet, target, debugMode)
 		}
 
 		if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {
