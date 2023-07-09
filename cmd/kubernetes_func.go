@@ -1,9 +1,8 @@
-package kubernetes
+package cmd
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -22,31 +21,6 @@ type Info struct {
 	Kind       string
 	Replicas   int
 	Pods       []map[string]string
-}
-
-var (
-	WarningLogger *log.Logger
-	InfoLogger    *log.Logger
-	ErrorLogger   *log.Logger
-	DebugLogger   *log.Logger
-	configFile    reader.Configuration
-)
-
-func init() {
-	var flags int
-	//TODO: Fix this pleaseeeeeeeeeeeeee
-	configPath := "./config.yaml"
-	configFile = reader.ReadFile(configPath)
-
-	if configFile.Logging.Debug {
-		flags = log.Ldate | log.Ltime | log.Lshortfile
-		DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
-	} else {
-		flags = log.Ldate | log.Ltime
-	}
-	InfoLogger = log.New(os.Stdout, "INFO ", flags)
-	WarningLogger = log.New(os.Stdout, "WARNING ", flags)
-	ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
 }
 
 func GetClusterAccess(configFile *reader.Configuration) (*kubernetes.Clientset, *rest.Config) {
