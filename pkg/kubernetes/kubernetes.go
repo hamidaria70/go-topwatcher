@@ -35,7 +35,8 @@ var (
 func init() {
 	var flags int
 	//TODO: Fix this pleaseeeeeeeeeeeeee
-	//	configFile = reader.ReadFile()
+	configPath := "./config.yaml"
+	configFile = reader.ReadFile(configPath)
 
 	if configFile.Logging.Debug {
 		flags = log.Ldate | log.Ltime | log.Lshortfile
