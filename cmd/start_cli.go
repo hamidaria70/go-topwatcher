@@ -37,6 +37,7 @@ to quickly create a Cobra application.`,
 		var target []string
 		allkeys := make(map[string]bool)
 		isDebugMode, _ := cmd.Flags().GetBool("debug")
+		isPodRestart, _ := cmd.Flags().GetBool("restart-pod")
 		configPath, _ := cmd.Flags().GetString("config")
 		namespace, _ := cmd.Flags().GetString("namespace")
 
@@ -89,7 +90,7 @@ to quickly create a Cobra application.`,
 			os.Exit(1)
 		}
 
-		if len(target) > 0 && configFile.Kubernetes.PodRestart {
+		if len(target) > 0 && (configFile.Kubernetes.PodRestart || isPodRestart) {
 			RestartDeployment(clientSet, target, isDebugMode)
 		}
 
@@ -106,6 +107,7 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(startCmd)
 	startCmd.Flags().BoolP("debug", "d", false, "Turn on debug mode")
+	startCmd.Flags().BoolP("restart-pod", "R", false, "Trigger pod restart")
 	startCmd.Flags().StringP("config", "c", "./config.yaml", "Config file address")
 	startCmd.Flags().StringP("namespace", "n", "", "Target namespace")
 
