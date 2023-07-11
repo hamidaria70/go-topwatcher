@@ -19,4 +19,4 @@ slack:
   username: "topwatcher"
 
 logging:
-  debug: true
+  debug: false
