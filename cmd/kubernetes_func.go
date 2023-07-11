@@ -52,7 +52,7 @@ func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputK
 			ErrorLogger.Println(err)
 			os.Exit(1)
 		}
-		kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
+		kubeConfigPath = filepath.Join(userHomeDir, ".kube", "config")
 		if isDebugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Kubeconfig path is: ", kubeConfigPath)
 		}
