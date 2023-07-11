@@ -81,10 +81,10 @@ func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputK
 	return clientSet, kubeConfig
 }
 
-func RestartDeployment(clientSet *kubernetes.Clientset, target []string, isDebugMode bool) {
+func RestartDeployment(clientSet *kubernetes.Clientset, target []string, isDebugMode bool,nameSpace string) {
 
 	for _, deploymentName := range target {
-		deploymentClient := clientSet.AppsV1().Deployments("default")
+		deploymentClient := clientSet.AppsV1().Deployments(nameSpace)
 		data := fmt.Sprintf(`{"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "%s"}}}}}`, time.Now().Format("20060102150405"))
 		_, err := deploymentClient.Patch(context.TODO(), deploymentName, types.StrategicMergePatchType, []byte(data), v1.PatchOptions{})
 

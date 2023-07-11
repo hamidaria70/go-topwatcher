@@ -109,7 +109,7 @@ to quickly create a Cobra application.`,
 		}
 
 		if len(target) > 0 && (configFile.Kubernetes.PodRestart || isPodRestart) {
-			RestartDeployment(clientSet, target, isDebugMode)
+			RestartDeployment(clientSet, target, isDebugMode, nameSpace)
 		}
 
 		if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {
