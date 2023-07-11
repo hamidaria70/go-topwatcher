@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 HAMID ARIA hamidaria.70@gmail.com
 */
 package cmd
 
