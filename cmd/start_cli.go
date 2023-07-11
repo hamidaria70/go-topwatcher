@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"topwatcher/pkg/reader"
@@ -33,6 +34,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var flags int
 		var nameSpace string
+		var exceptionsList []string
 		var ramThreshold int
 		var alerts []string
 		var target []string
@@ -43,10 +45,17 @@ to quickly create a Cobra application.`,
 		namespace, _ := cmd.Flags().GetString("namespace")
 		inputKubeConfig, _ := cmd.Flags().GetString("kubeconfig")
 		inputRam, _ := cmd.Flags().GetInt("ram-threshold")
+		inputExceptions, _ := cmd.Flags().GetStringSlice("exceptions")
 
 		configFile = reader.ReadFile(configPath)
+		fmt.Println(inputExceptions)
+		if len(inputExceptions) > 0 {
+			exceptionsList = inputExceptions
+		} else {
+			exceptionsList = configFile.Kubernetes.Exceptions.Deployments
+		}
 
-		for _, item := range configFile.Kubernetes.Exceptions.Deployments {
+		for _, item := range exceptionsList {
 			if _, value := allkeys[item]; !value {
 				allkeys[item] = true
 				exceptions = append(exceptions, item)
@@ -65,7 +74,7 @@ to quickly create a Cobra application.`,
 
 		InfoLogger.Println("Starting topwatcher...")
 
-		clientSet, config := GetClusterAccess(&configFile, isDebugMode,inputKubeConfig)
+		clientSet, config := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
 
 		if len(namespace) > 0 {
 			nameSpace = namespace
@@ -121,6 +130,7 @@ func init() {
 	startCmd.Flags().StringP("namespace", "n", "", "Target namespace")
 	startCmd.Flags().StringP("kubeconfig", "k", "", "Path to cluster kubeconfig")
 	startCmd.Flags().IntP("ram-threshold", "r", 0, "Ram threshold")
+	startCmd.Flags().StringSliceP("exceptions", "e", []string{}, "List of exception to prevent restarting	Note: comma separated without spaces --> deployment1,deployment2,deployment3")
 
 	// Here you will define your flags and configuration settings.
 
