@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 		var alerts []string
 		var target []string
 		allkeys := make(map[string]bool)
-		debugMode, _ := cmd.Flags().GetBool("debug")
+		isDebugMode, _ := cmd.Flags().GetBool("debug")
 		configPath, _ := cmd.Flags().GetString("config")
 		namespace, _ := cmd.Flags().GetString("namespace")
 
@@ -49,7 +49,7 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		if debugMode || configFile.Logging.Debug {
+		if isDebugMode || configFile.Logging.Debug {
 			flags = log.Ldate | log.Ltime | log.Lshortfile
 			DebugLogger = log.New(os.Stdout, "DEBUG ", flags)
 		} else {
@@ -61,7 +61,7 @@ to quickly create a Cobra application.`,
 
 		InfoLogger.Println("Starting topwatcher...")
 
-		clientSet, config := GetClusterAccess(&configFile, debugMode)
+		clientSet, config := GetClusterAccess(&configFile, isDebugMode)
 
 		if len(namespace) > 0 {
 			nameSpace = namespace
@@ -70,9 +70,9 @@ to quickly create a Cobra application.`,
 		}
 
 		if len(nameSpace) > 0 {
-			if Contain(nameSpace, clientSet, debugMode) {
-				podInfo := GetPodInfo(clientSet, &configFile, config, debugMode, nameSpace)
-				if debugMode || configFile.Logging.Debug {
+			if Contain(nameSpace, clientSet, isDebugMode) {
+				podInfo := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
+				if isDebugMode || configFile.Logging.Debug {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
 				if configFile.Kubernetes.Threshold.Ram > 0 {
@@ -90,7 +90,7 @@ to quickly create a Cobra application.`,
 		}
 
 		if len(target) > 0 && configFile.Kubernetes.PodRestart {
-			RestartDeployment(clientSet, target, debugMode)
+			RestartDeployment(clientSet, target, isDebugMode)
 		}
 
 		if configFile.Slack.Notify && len(configFile.Slack.Channel) > 0 {
