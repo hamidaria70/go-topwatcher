@@ -41,6 +41,7 @@ to quickly create a Cobra application.`,
 		isPodRestart, _ := cmd.Flags().GetBool("restart-pod")
 		configPath, _ := cmd.Flags().GetString("config")
 		namespace, _ := cmd.Flags().GetString("namespace")
+		inputKubeConfig, _ := cmd.Flags().GetString("kubeconfig")
 		inputRam, _ := cmd.Flags().GetInt("ram-threshold")
 
 		configFile = reader.ReadFile(configPath)
@@ -64,7 +65,7 @@ to quickly create a Cobra application.`,
 
 		InfoLogger.Println("Starting topwatcher...")
 
-		clientSet, config := GetClusterAccess(&configFile, isDebugMode)
+		clientSet, config := GetClusterAccess(&configFile, isDebugMode,inputKubeConfig)
 
 		if len(namespace) > 0 {
 			nameSpace = namespace
@@ -118,6 +119,7 @@ func init() {
 	startCmd.Flags().BoolP("restart-pod", "R", false, "Trigger pod restart")
 	startCmd.Flags().StringP("config", "c", "./config.yaml", "Config file address")
 	startCmd.Flags().StringP("namespace", "n", "", "Target namespace")
+	startCmd.Flags().StringP("kubeconfig", "k", "", "Path to cluster kubeconfig")
 	startCmd.Flags().IntP("ram-threshold", "r", 0, "Ram threshold")
 
 	// Here you will define your flags and configuration settings.

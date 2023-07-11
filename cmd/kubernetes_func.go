@@ -23,14 +23,21 @@ type Info struct {
 	Pods       []map[string]string
 }
 
-func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool) (*kubernetes.Clientset, *rest.Config) {
+func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputKubeConfig string) (*kubernetes.Clientset, *rest.Config) {
 	var kubeConfigPath string
+	var clusterKubeConfig string
 
-	if configFile.Kubernetes.Kubeconfig != "" {
+	if len(inputKubeConfig) > 0 {
+		clusterKubeConfig = inputKubeConfig
+	} else {
+		clusterKubeConfig = configFile.Kubernetes.Kubeconfig
+	}
+
+	if clusterKubeConfig != "" {
 		if isDebugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Building kubeconfig file from configuration file")
 		}
-		kubeConfigPath = configFile.Kubernetes.Kubeconfig
+		kubeConfigPath = clusterKubeConfig
 	} else {
 		if isDebugMode || configFile.Logging.Debug {
 			DebugLogger.Println("Reading kubeconfig from user home directory")
