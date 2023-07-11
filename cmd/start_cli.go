@@ -33,6 +33,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var flags int
 		var nameSpace string
+		var ramThreshold int
 		var alerts []string
 		var target []string
 		allkeys := make(map[string]bool)
@@ -40,6 +41,7 @@ to quickly create a Cobra application.`,
 		isPodRestart, _ := cmd.Flags().GetBool("restart-pod")
 		configPath, _ := cmd.Flags().GetString("config")
 		namespace, _ := cmd.Flags().GetString("namespace")
+		inputRam, _ := cmd.Flags().GetInt("ram-threshold")
 
 		configFile = reader.ReadFile(configPath)
 
@@ -70,13 +72,19 @@ to quickly create a Cobra application.`,
 			nameSpace = configFile.Kubernetes.Namespaces
 		}
 
+		if inputRam > 0 {
+			ramThreshold = inputRam
+		} else {
+			ramThreshold = configFile.Kubernetes.Threshold.Ram
+		}
+
 		if len(nameSpace) > 0 {
 			if Contain(nameSpace, clientSet, isDebugMode) {
 				podInfo := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
 				if isDebugMode || configFile.Logging.Debug {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
-				if configFile.Kubernetes.Threshold.Ram > 0 {
+				if ramThreshold > 0 {
 					alerts, target = CheckPodRamUsage(&configFile, podInfo)
 				} else {
 					ErrorLogger.Println("Ram value is not defined in configuration file")
@@ -110,6 +118,7 @@ func init() {
 	startCmd.Flags().BoolP("restart-pod", "R", false, "Trigger pod restart")
 	startCmd.Flags().StringP("config", "c", "./config.yaml", "Config file address")
 	startCmd.Flags().StringP("namespace", "n", "", "Target namespace")
+	startCmd.Flags().IntP("ram-threshold", "r", 0, "Ram threshold")
 
 	// Here you will define your flags and configuration settings.
 
