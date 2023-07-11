@@ -6,6 +6,7 @@ import (
 )
 
 func TestIsException(t *testing.T) {
+	cmd.Execute()
 	got := cmd.IsException("deployment1", "pod1", []string{"deployment1", "deployment2", "deployment3"})
 	want := false
 
