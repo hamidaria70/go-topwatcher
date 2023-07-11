@@ -1,17 +1,14 @@
-package main
+package cmd
 
 import (
-	"flag"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
+	"topwatcher/pkg/reader"
 
 	"github.com/ashwanthkumar/slack-go-webhook"
-	"gopkg.in/yaml.v2"
 )
 
-func CheckPodRamUsage(configFile Configuration, podInfo []Info) ([]string, []string) {
+func CheckPodRamUsage(configFile *reader.Configuration, podInfo []Info) ([]string, []string) {
 	deploymentList := make([]string, 0)
 	allkeys := make(map[string]bool)
 	list := make([]string, 0)
@@ -47,7 +44,7 @@ func CheckPodRamUsage(configFile Configuration, podInfo []Info) ([]string, []str
 	return alerts, list
 }
 
-func SendSlackPayload(configFile Configuration, alerts []string) {
+func SendSlackPayload(configFile *reader.Configuration, alerts []string) {
 
 	for _, alert := range alerts {
 		InfoLogger.Println(alert)
@@ -61,35 +58,6 @@ func SendSlackPayload(configFile Configuration, alerts []string) {
 		if len(errorSendSlack) > 0 {
 			ErrorLogger.Printf("error: %s\n", errorSendSlack)
 		}
-	}
-}
-
-func readFile(configFile *Configuration) {
-	var file *os.File
-	var err error
-
-	if path := flag.Arg(0); path != "" {
-		file, err = os.Open(path)
-		if err != nil {
-			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println(err)
-			os.Exit(1)
-		}
-	} else {
-		file, err = os.Open("config.yaml")
-		if err != nil {
-			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println("make sure that config.yaml is here")
-			os.Exit(1)
-		}
-	}
-
-	defer file.Close()
-
-	decoder := yaml.NewDecoder(file)
-	err = decoder.Decode(configFile)
-
-	if err != nil {
-		ErrorLogger.Println(err)
-		os.Exit(1)
 	}
 }
 

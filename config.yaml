@@ -7,6 +7,11 @@ kubernetes:
   exceptions:
     deployments:
       - web3
+      - web
+      - web1
+      - web2
+      - web3
+      - web4
 slack:
   notify: false
   webhookurl: ""
