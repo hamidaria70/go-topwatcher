@@ -1,10 +1,9 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 NAME HERE hamidaria.70@gmail.com
 */
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"topwatcher/pkg/reader"
@@ -32,6 +31,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		var flags int
 		var nameSpace string
 		var exceptionsList []string
@@ -39,22 +39,22 @@ to quickly create a Cobra application.`,
 		var alerts []string
 		var target []string
 		allkeys := make(map[string]bool)
+
 		isDebugMode, _ := cmd.Flags().GetBool("debug")
 		isPodRestart, _ := cmd.Flags().GetBool("restart-pod")
-		configPath, _ := cmd.Flags().GetString("config")
-		namespace, _ := cmd.Flags().GetString("namespace")
+		inputConfigPath, _ := cmd.Flags().GetString("config")
+		inputNamespace, _ := cmd.Flags().GetString("namespace")
 		inputKubeConfig, _ := cmd.Flags().GetString("kubeconfig")
 		inputRam, _ := cmd.Flags().GetInt("ram-threshold")
 		inputExceptions, _ := cmd.Flags().GetStringSlice("exceptions")
 
-		if _, err := os.Stat(configPath); err != nil {
+		if _, err := os.Stat(inputConfigPath); err != nil {
 			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println("Try again using switches , Run 'topwatcher start -h'")
 			os.Exit(1)
 		} else {
-			configFile = reader.ReadFile(configPath)
+			configFile = reader.ReadFile(inputConfigPath)
 		}
 
-		fmt.Println(inputExceptions)
 		if len(inputExceptions) > 0 {
 			exceptionsList = inputExceptions
 		} else {
@@ -74,6 +74,7 @@ to quickly create a Cobra application.`,
 		} else {
 			flags = log.Ldate | log.Ltime
 		}
+
 		InfoLogger = log.New(os.Stdout, "INFO ", flags)
 		WarningLogger = log.New(os.Stdout, "WARNING ", flags)
 		ErrorLogger = log.New(os.Stdout, "ERROR ", flags)
@@ -82,8 +83,8 @@ to quickly create a Cobra application.`,
 
 		clientSet, config := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
 
-		if len(namespace) > 0 {
-			nameSpace = namespace
+		if len(inputNamespace) > 0 {
+			nameSpace = inputNamespace
 		} else {
 			nameSpace = configFile.Kubernetes.Namespaces
 		}
@@ -137,14 +138,4 @@ func init() {
 	startCmd.Flags().StringP("kubeconfig", "k", "", "Path to cluster kubeconfig")
 	startCmd.Flags().IntP("ram-threshold", "r", 0, "Ram threshold")
 	startCmd.Flags().StringSliceP("exceptions", "e", []string{}, "List of exception to prevent restarting	Note: comma separated without spaces --> deployment1,deployment2,deployment3")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// startCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

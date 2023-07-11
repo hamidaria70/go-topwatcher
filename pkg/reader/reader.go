@@ -30,13 +30,10 @@ type Configuration struct {
 	} `yaml:"logging"`
 }
 
-var (
-	configFile Configuration
-)
-
 func ReadFile(configPath string) Configuration {
 	var file *os.File
 	var err error
+	var configFile Configuration
 
 	file, err = os.Open(configPath)
 	if err != nil {

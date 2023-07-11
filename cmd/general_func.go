@@ -43,6 +43,7 @@ func CheckPodRamUsage(configFile *reader.Configuration, podInfo []Info) ([]strin
 
 	return alerts, list
 }
+
 func SendSlackPayload(configFile *reader.Configuration, alerts []string) {
 
 	for _, alert := range alerts {
