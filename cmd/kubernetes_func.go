@@ -91,7 +91,7 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string, debugMo
 	}
 }
 
-func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config, debugMode bool) []Info {
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config, debugMode bool,nameSpace string) []Info {
 	var info Info
 	info.Pods = make([]map[string]string, 0)
 	var podInfo []Info
@@ -99,7 +99,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 	podDetailList := make([](map[string]string), 0)
 	podMetricsDetailList := make([](map[string]string), 0)
 
-	pods, err := clientSet.CoreV1().Pods(configFile.Kubernetes.Namespaces).List(context.Background(), v1.ListOptions{})
+	pods, err := clientSet.CoreV1().Pods(nameSpace).List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		ErrorLogger.Printf("Error Getting Pods: %v\n", err)
 		os.Exit(1)
@@ -123,7 +123,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 		os.Exit(1)
 	}
 
-	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(configFile.Kubernetes.Namespaces).List(context.TODO(), v1.ListOptions{})
+	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(nameSpace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		ErrorLogger.Println(err)
 		os.Exit(1)

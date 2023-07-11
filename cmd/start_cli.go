@@ -18,7 +18,6 @@ var (
 	DebugLogger   *log.Logger
 	exceptions    []string
 	configFile    reader.Configuration
-	configPath    string
 )
 
 // startCmd represents the start command
@@ -33,11 +32,13 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var flags int
+		var nameSpace string
 		var alerts []string
 		var target []string
 		allkeys := make(map[string]bool)
 		debugMode, _ := cmd.Flags().GetBool("debug")
-		configPath, _ = cmd.Flags().GetString("config")
+		configPath, _ := cmd.Flags().GetString("config")
+		namespace, _ := cmd.Flags().GetString("namespace")
 
 		configFile = reader.ReadFile(configPath)
 
@@ -62,9 +63,15 @@ to quickly create a Cobra application.`,
 
 		clientSet, config := GetClusterAccess(&configFile, debugMode)
 
-		if len(configFile.Kubernetes.Namespaces) > 0 {
-			if Contain(configFile.Kubernetes.Namespaces, clientSet, debugMode) {
-				podInfo := GetPodInfo(clientSet, &configFile, config, debugMode)
+		if len(namespace) > 0 {
+			nameSpace = namespace
+		} else {
+			nameSpace = configFile.Kubernetes.Namespaces
+		}
+
+		if len(nameSpace) > 0 {
+			if Contain(nameSpace, clientSet, debugMode) {
+				podInfo := GetPodInfo(clientSet, &configFile, config, debugMode, nameSpace)
 				if debugMode || configFile.Logging.Debug {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
@@ -75,7 +82,7 @@ to quickly create a Cobra application.`,
 					os.Exit(1)
 				}
 			} else {
-				WarningLogger.Printf("'%v' namespace is not in the cluster!!", configFile.Kubernetes.Namespaces)
+				WarningLogger.Printf("'%v' namespace is not in the cluster!!", nameSpace)
 			}
 		} else {
 			ErrorLogger.Println("Namespace is not defined")
@@ -100,6 +107,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	startCmd.Flags().BoolP("debug", "d", false, "Turn on debug mode")
 	startCmd.Flags().StringP("config", "c", "./config.yaml", "Config file address")
+	startCmd.Flags().StringP("namespace", "n", "", "Target namespace")
 
 	// Here you will define your flags and configuration settings.
 
