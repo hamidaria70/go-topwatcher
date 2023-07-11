@@ -47,7 +47,13 @@ to quickly create a Cobra application.`,
 		inputRam, _ := cmd.Flags().GetInt("ram-threshold")
 		inputExceptions, _ := cmd.Flags().GetStringSlice("exceptions")
 
-		configFile = reader.ReadFile(configPath)
+		if _, err := os.Stat(configPath); err != nil {
+			log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime).Println("Try again using switches , Run 'topwatcher start -h'")
+			os.Exit(1)
+		} else {
+			configFile = reader.ReadFile(configPath)
+		}
+
 		fmt.Println(inputExceptions)
 		if len(inputExceptions) > 0 {
 			exceptionsList = inputExceptions
