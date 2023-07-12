@@ -1,4 +1,5 @@
 kubernetes:
+  vjfvfdvjhdfk
   kubeconfig: /path/to/kube/config
   namespaces: default
   podrestart: false
