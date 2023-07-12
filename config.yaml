@@ -1,5 +1,5 @@
 kubernetes:
-  kubeconfig: /home/hamid/.kube/config
+  kubeconfig: /path/to/kube/config
   namespaces: default
   podrestart: false
   threshold:
@@ -15,7 +15,7 @@ kubernetes:
 slack:
   notify: false
   webhookurl: ""
-  channel: "topwatcher"
+  channel: ""
   username: "topwatcher"
 
 logging:
