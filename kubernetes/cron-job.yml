@@ -14,15 +14,17 @@ spec:
           containers:
           - args:
             - /usr/local/bin/topwatcher
-            - /app/config.yaml
-            image: topwatcher:latest
-            imagePullPolicy: IfNotPresent
+            - start
+            - -c
+            - /app_topwatcher/config.yaml
+            image: ghcr.io/hamidaria70/topwatcher:v0.2.0
+            imagePullPolicy: Always
             name: topwatcher
             volumeMounts:
-            - mountPath: /app/config.yaml
+            - mountPath: /app_topwatcher/config.yaml
               name: topwatcher-configmap
               subPath: config.yaml
-            - mountPath: /app/kubeconfig
+            - mountPath: /app_topwatcher/kubeconfig
               name: cluster-config
               subPath: config
           restartPolicy: OnFailure
@@ -38,6 +40,6 @@ spec:
             secret:
               defaultMode: 420
               secretName: cluster-config
-  schedule: '*/10 * * * *'
+  schedule: '*/15 * * * *'
   successfulJobsHistoryLimit: 1
   suspend: false
