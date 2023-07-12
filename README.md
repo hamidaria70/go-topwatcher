@@ -30,19 +30,19 @@ logging:
   debug: false
 ```
 
-For now, there are three categories inside the config file as you see above.
+For now, there are three categories inside the config file as you see above. Also, you can use switches to override the config file values.
 
-* `kubernetes` is about configs that related to cluster.
+* `kubernetes` is about configs that related to cluster. 
 * `slack` is about configs that related to slack notify.
 * `logging` is about logging of the code.
 
 In `kubernetes` directive you will see:
 
-* `kubeconfig` which is the address of `kubeconfig` file.
-* `namespace` is the target namespace that `Topwatcher` is going to check it.
-* `podrestart` is flag, so if you want to restart the deployment you can change it to `true`.
-* `threshold.ram` is the threshold of ram usage. It is obvious if a pod has ram usage more than this value is going to be restart.
-* `exceptions.deployment` is a list of exceptions for those deployments that you never want to be restarted.
+* `kubeconfig` which is the address of `kubeconfig` file.( `-k` or `--kubeconfig` )
+* `namespace` is the target namespace that `Topwatcher` is going to check it.( `-n` or `--namespace` )
+* `podrestart` is flag, so if you want to restart the deployment you can change it to `true`.( `-R` or `--restart-pod` )
+* `threshold.ram` is the threshold of ram usage. It is obvious if a pod has ram usage more than this value is going to be restart. ( `-r` or `--ram-threshold` )
+* `exceptions.deployment` is a list of exceptions for those deployments that you never want to be restarted. ( `-e` or `--exceptions` )
 
 In `slack` directive you will see:
 
@@ -53,7 +53,7 @@ In `slack` directive you will see:
 
 In `logging` directive you will see:
 
-* `debug` is a flag, so if you want to see debug logs, change it to true.
+* `debug` is a flag, so if you want to see debug logs, change it to true.( `-d` or `--debug` )
 
 ## How to use Topwatcher?
 
