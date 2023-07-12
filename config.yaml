@@ -6,12 +6,8 @@ kubernetes:
     ram: 5
   exceptions:
     deployments:
-      - web3
-      - web
-      - web1
-      - web2
-      - web3
-      - web4
+      - deployment1
+      - deployment2
 slack:
   notify: false
   webhookurl: ""
