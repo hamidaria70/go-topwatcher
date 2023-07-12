@@ -1,14 +1,19 @@
-FROM golang:1.20.5-alpine
+# Build the application from source
+FROM golang:1.20.5-alpine AS build-stage
 
 WORKDIR /app
-COPY config.yaml /app
 
-COPY go.mod ./
-COPY go.sum ./
+COPY . /app
 RUN go mod download
 
-COPY *.go ./
+RUN go build -o /topwatcher
 
-RUN go build -o /usr/local/bin/topwatcher
+# Deploy the application binary into a lean image
+FROM alpine:latest AS build-release-stage
+
+WORKDIR /app_topwatcher
+
+COPY . /app_topwatcher
+COPY --from=build-stage /topwatcher /usr/local/bin
 
 CMD [ "topwatcher" ]
