@@ -4,6 +4,7 @@ Copyright © 2023 HAMID ARIA hamidaria.70@gmail.com
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -67,12 +68,23 @@ var rootCmd = &cobra.Command{
 			c.IndentedJSON(http.StatusOK, exceptions)
 			exceptions = nil
 		})
-		clientSet, config := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
+		clientSet, config, err := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
+
+		//TEMPORARY
+		if err != nil {
+			fmt.Println("############")
+			fmt.Println(err)
+		}
 		router.GET("/apiv1/podinfo", func(c *gin.Context) {
 			nameSpace := "default"
-			podInfo := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
-
-			c.IndentedJSON(http.StatusOK, podInfo)
+			podInfo, err := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
+			if err != nil {
+				c.Next()
+				fmt.Println("somehting happend here!!!!")
+				c.String(http.StatusInternalServerError, "what the hell???")
+			} else {
+				c.IndentedJSON(http.StatusOK, podInfo)
+			}
 		})
 		router.Run()
 	},

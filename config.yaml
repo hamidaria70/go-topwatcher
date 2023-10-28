@@ -1,13 +1,24 @@
 kubernetes:
-  kubeconfig: /path/to/kube/config
+  kubeconfig: /home/hamid/.kube/config
   namespaces: default
   podrestart: false
   threshold:
     ram: 5
   exceptions:
     deployments:
-      - deployment1
-      - deployment2
+      - web1
+      - web1
+      - web1
+      - web2
+      - web2
+      - web2
+      - web1
+      - web1
+      - web2
+      - web1
+      - web1
+      - web3
+      - web2
 slack:
   notify: false
   webhookurl: ""

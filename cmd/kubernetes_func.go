@@ -23,7 +23,7 @@ type Info struct {
 	Pods       []map[string]string
 }
 
-func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputKubeConfig string) (*kubernetes.Clientset, *rest.Config) {
+func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputKubeConfig string) (*kubernetes.Clientset, *rest.Config, error) {
 	var kubeConfigPath string
 	var clusterKubeConfig string
 
@@ -50,7 +50,7 @@ func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputK
 
 		if err != nil {
 			ErrorLogger.Println(err)
-			os.Exit(1)
+			//os.Exit(1)
 		}
 		kubeConfigPath = filepath.Join(userHomeDir, ".kube", "config")
 		if isDebugMode || configFile.Logging.Debug {
@@ -65,7 +65,7 @@ func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputK
 
 	if err != nil {
 		ErrorLogger.Println(err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	clientSet, err := kubernetes.NewForConfig(kubeConfig)
@@ -75,13 +75,14 @@ func GetClusterAccess(configFile *reader.Configuration, isDebugMode bool, inputK
 
 	if err != nil {
 		ErrorLogger.Printf("Error Getting Kubernetes clientset: %v\n", err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
-	return clientSet, kubeConfig
+	return clientSet, kubeConfig, err
 }
 
-func RestartDeployment(clientSet *kubernetes.Clientset, target []string, isDebugMode bool,nameSpace string) {
+func RestartDeployment(clientSet *kubernetes.Clientset, target []string, isDebugMode bool, nameSpace string) error {
+	var err error
 
 	for _, deploymentName := range target {
 		deploymentClient := clientSet.AppsV1().Deployments(nameSpace)
@@ -96,9 +97,10 @@ func RestartDeployment(clientSet *kubernetes.Clientset, target []string, isDebug
 			ErrorLogger.Println(err)
 		}
 	}
+	return err
 }
 
-func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config, isDebugMode bool, nameSpace string) []Info {
+func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuration, config *rest.Config, isDebugMode bool, nameSpace string) ([]Info, error) {
 	var info Info
 	info.Pods = make([]map[string]string, 0)
 	var podInfo []Info
@@ -109,7 +111,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 	pods, err := clientSet.CoreV1().Pods(nameSpace).List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		ErrorLogger.Printf("Error Getting Pods: %v\n", err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	for _, pod := range pods.Items {
@@ -127,13 +129,13 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 	metricsClientset, err := metricsv.NewForConfig(config)
 	if err != nil {
 		ErrorLogger.Println(err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	podMetricsList, err := metricsClientset.MetricsV1beta1().PodMetricses(nameSpace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		ErrorLogger.Println(err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 	if len(podMetricsList.Items) == len(podDetailList) {
 		for v := range podMetricsList.Items {
@@ -148,7 +150,7 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 			DebugLogger.Printf("length of podMetricsList: %v length of podDetailList: %v\n", podMetricsList.Items, podDetailList)
 		}
 		ErrorLogger.Println("Metrics are not available for some pods")
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	keys := make(map[string]int)
@@ -171,16 +173,16 @@ func GetPodInfo(clientSet *kubernetes.Clientset, configFile *reader.Configuratio
 
 		}
 	}
-	return podInfo
+	return podInfo, err
 }
 
-func Contain(nominated string, clientSet *kubernetes.Clientset, isDebugMode bool) bool {
+func Contain(nominated string, clientSet *kubernetes.Clientset, isDebugMode bool) (bool, error) {
 	var namespaceList []string
 
 	namespace, err := clientSet.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		ErrorLogger.Println(err)
-		os.Exit(2)
+		//os.Exit(2)
 	}
 	for _, namespace := range namespace.Items {
 		namespaceList = append(namespaceList, namespace.Name)
@@ -191,8 +193,8 @@ func Contain(nominated string, clientSet *kubernetes.Clientset, isDebugMode bool
 			if isDebugMode || configFile.Logging.Debug {
 				DebugLogger.Printf("%v namespace exists inside the cluster\n", nominated)
 			}
-			return true
+			return true, err
 		}
 	}
-	return false
+	return false, err
 }

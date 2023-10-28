@@ -4,6 +4,7 @@ Copyright © 2023 HAMID ARIA hamidaria.70@gmail.com
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"topwatcher/pkg/reader"
@@ -74,7 +75,12 @@ var startCmd = &cobra.Command{
 
 		InfoLogger.Println("Starting topwatcher...")
 
-		clientSet, config := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
+		clientSet, config, err := GetClusterAccess(&configFile, isDebugMode, inputKubeConfig)
+
+		//TEMPORARY
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		if len(inputNamespace) > 0 {
 			nameSpace = inputNamespace
@@ -89,8 +95,22 @@ var startCmd = &cobra.Command{
 		}
 
 		if len(nameSpace) > 0 {
-			if Contain(nameSpace, clientSet, isDebugMode) {
-				podInfo := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
+
+			//TEMPORARY
+			containBool, err := Contain(nameSpace, clientSet, isDebugMode)
+
+			//TEMPORARY
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			if containBool {
+				podInfo, err := GetPodInfo(clientSet, &configFile, config, isDebugMode, nameSpace)
+				//TEMPORARY
+				if err != nil {
+					fmt.Println(err)
+				}
+
 				if isDebugMode || configFile.Logging.Debug {
 					DebugLogger.Printf("Pods information list is: %v", podInfo)
 				}
