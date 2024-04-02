@@ -18,6 +18,5 @@ jobs:
     
     - name: Test
       run: |
-        export password=password
-        echo $password
+        export password=password; echo $password
 
